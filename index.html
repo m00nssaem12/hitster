@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>HITSTER K-POP</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=swap');
+  @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+  
+  body { 
+    background-color: #2C3E50; color: white; font-family: 'Pretendard', sans-serif; 
+    text-align: center; margin: 0; padding: 10px; overflow-x: hidden;
+    touch-action: pan-y;
+  }
+  h1 { font-family: 'Black Han Sans', sans-serif; color: #FFD700; font-size: 2.2rem; margin: 10px 0; }
+  #life-container { font-family: 'Black Han Sans', sans-serif; font-size: 1.5rem; color: #FFD700; margin-bottom: 10px; }
+  #warn-banner { display: none; background: #e74c3c; color: #fff; padding: 10px 14px; border-radius: 8px; margin: 6px auto 10px; max-width: 500px; font-weight: 700; font-size: 0.9rem; word-break: keep-all; }
+  .btn-group { position: sticky; top: 0; background: #2C3E50; padding: 10px; z-index: 1000; display: flex; justify-content: center; gap: 8px; border-bottom: 2px solid #34495E; }
+  .btn-group button { background: #FFD700; color: #000; border: none; padding: 10px 15px; border-radius: 8px; font-weight: 800; font-size: 0.9rem; cursor: pointer; box-shadow: 0 3px #b89b00; }
+  .btn-group button:disabled { background: #7f8c8d; box-shadow: none; opacity: 0.5; }
+  .reset-btn { background: #e74c3c !important; color: #fff !important; box-shadow: 0 3px #c0392b !important; }
+  #sortable-list { padding: 15px; max-width: 500px; margin: 10px auto 100px; background: #1a252f; border-radius: 15px; border: 2px dashed #FFD700; min-height: 100px; }
+  .card { background: #34495E; border: 2px solid #FFD700; padding: 10px; border-radius: 12px; margin-bottom: 10px; display: flex; align-items: center; position: relative; touch-action: none; }
+  .drag-handle { width: 35px; height: 45px; background: #5D6D7E; border-radius: 4px; margin-right: 12px; display: flex; align-items: center; justify-content: center; cursor: grab; font-size: 1.2rem; flex-shrink: 0; }
+  .drag-handle::before { content: "⋮⋮"; color: #BDC3C7; }
+  .play-btn { background: #FFD700; color: #000; border: none; padding: 10px 14px; border-radius: 8px; font-weight: bold; font-size: 0.9rem; z-index: 10; flex-shrink: 0; box-shadow: 0 3px #b89b00; cursor: pointer; }
+  .info-text { flex: 1; text-align: left; margin-left: 12px; font-weight: 700; font-size: 1rem; pointer-events: none; word-break: keep-all; }
+  .year-tag { background: #FFD700; color: #000; padding: 5px 10px; border-radius: 6px; font-weight: 900; font-size: 1rem; display: none; margin-left: 5px; }
+  .card.revealed .year-tag { display: block !important; }
+  .card.correct { background: #27ae60 !important; border-color: #2ecc71 !important; }
+  .card.wrong { background: #9b59b6 !important; border-color: #8e44ad !important; }
+  .blind-box { position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background: #000; border-top: 3px solid #FFD700; z-index: 9999; display: flex; align-items: center; justify-content: center; }
+  #on-air-text { color: #FFD700; font-family: 'Black Han Sans'; font-size: 0.95rem; padding: 0 12px; word-break: keep-all; }
+
+  /* 유튜브는 200x200보다 작은 플레이어의 재생을 막을 수 있어서, 크기는 유지하고 눈에만 안 보이게 함 */
+  #player-wrapper { position: fixed; bottom: 0; left: 0; width: 200px; height: 200px; opacity: 0.01; pointer-events: none; z-index: 1; }
+
+  #game-over-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10001; flex-direction: column; justify-content: center; align-items: center; }
+
+  /* 곡 점검 모드 (?check) */
+  #check-panel { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.96); z-index: 10002; overflow-y: auto; padding: 20px; }
+  #check-panel button { background: #FFD700; color: #000; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 800; cursor: pointer; margin: 0 4px; }
+  #check-panel button:disabled { opacity: 0.5; }
+  #check-results { max-width: 700px; margin: 0 auto; text-align: left; }
+  .chk-row { padding: 7px 8px; border-bottom: 1px solid #34495E; font-size: 0.85rem; white-space: pre-wrap; }
+  .chk-ok { color: #55efc4; }
+  .chk-bad { color: #ff7675; font-weight: 700; }
+  .chk-warn { color: #ffeaa7; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<div id="game-over-screen">
+  <button id="retry-btn" style="background:#FFD700; padding:15px 30px; border-radius:30px; border:none; font-family:'Black Han Sans'; font-size:1.5rem; cursor:pointer;">다시 도전 🔄</button>
+  <h2 style="font-family:'Black Han Sans'; font-size: 3rem; color: #e74c3c;">GAME OVER</h2>
+</div>
+
+<div id="check-panel">
+  <h2 style="font-family:'Black Han Sans'; color:#FFD700; text-align:center;">🔍 곡 점검 모드</h2>
+  <p style="text-align:center; word-break:keep-all;">모든 곡을 음소거로 하나씩 틀어 보며 재생되는지 확인해요. 곡이 많아서 몇 분 걸려요.</p>
+  <div style="text-align:center;">
+    <button id="check-start">점검 시작</button>
+    <button id="check-close">닫기</button>
+  </div>
+  <p id="check-progress" style="text-align:center; color:#FFD700; font-weight:700; word-break:keep-all;"></p>
+  <div id="check-results"></div>
+</div>
+
+<h1>HITSTER K-POP</h1>
+<div id="life-container">LIVES: ❤️❤️❤️</div>
+<div id="warn-banner"></div>
+
+<div class="btn-group">
+  <button id="add-card-btn">➕ 카드 추가</button>
+  <button id="reveal-all-btn">🔓 전체 공개</button>
+  <button id="reset-btn" class="reset-btn">🔄 리셋</button>
+</div>
+
+<div id="sortable-list"></div>
+
+<div class="blind-box">
+  <span id="on-air-text">🎵 재생 버튼을 눌러주세요</span>
+</div>
+<div id="player-wrapper"><div id="player"></div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+<script>
+  const initialSongData = [
+    {t:"Good Goodbye", a:"화사 (HWASA)", y:2024, l:"-COVx822UK0"},
+    {t:"타임캡슐", a:"다비치 (DAVICHI)", y:2024, l:"qE35JN1ogeI"},
+    {t:"APT.", a:"로제 & Bruno Mars", y:2024, l:"qzDJnlrqNyo"},
+    {t:"천상연", a:"이창섭", y:2024, l:"N0S2I6l2B3o"},
+    {t:"나는 반딧불", a:"황가람", y:2024, l:"xL_cd1DJan8"},
+    {t:"Whiplash", a:"에스파 (aespa)", y:2024, l:"M8GAZhSPSgg"},
+    {t:"녹아내려요", a:"DAY6", y:2024, l:"yss4rIrHl6o"},
+    {t:"고민중독", a:"QWER", y:2024, l:"hFTs6HbtxbE"},
+    {t:"한 페이지가 될 수 있게", a:"DAY6", y:2019, l:"oYvgISKD5Y8"},
+    {t:"Supernova", a:"에스파 (aespa)", y:2024, l:"ePFc3Hjb3V0"},
+    {t:"밤양갱", a:"비비 (BIBI)", y:2024, l:"usnFQzpbFYg"},
+    {t:"소나기", a:"이클립스 (ECLIPSE)", y:2024, l:"MQMzMgqcuKk"},
+    {t:"첫 만남은 계획대로 되지 않아", a:"TWS (투어스)", y:2024, l:"eBc5raE5UDM"},
+    {t:"How Sweet", a:"뉴진스 (NewJeans)", y:2024, l:"iR2Uq2LINyU"},
+    {t:"SPOT!", a:"지코 (ZICO) feat. JENNIE", y:2024, l:"aQEpCqSDavc"},
+    {t:"Magnetic", a:"아일릿 (ILLIT)", y:2024, l:"Vk5-c_v4gMU"},
+    {t:"헤어지자 말해요", a:"박재정", y:2023, l:"vUw9IkCWEGk"},
+    {t:"Ditto", a:"뉴진스 (NewJeans)", y:2022, l:"Km71Rr9K-Bw"},
+    {t:"Seven", a:"정국 feat. Latto", y:2023, l:"QU9c0053UAU"},
+    {t:"I AM", a:"IVE (아이브)", y:2023, l:"6ZUIwj3FgUY"},
+    {t:"Love Lee", a:"AKMU (악뮤)", y:2023, l:"EIz09kLzN9k"},
+    {t:"Queencard", a:"(여자)아이들", y:2023, l:"7HDe6vG_0Fk"},
+    {t:"사막에서 꽃을 피우듯", a:"우디 (Woody)", y:2023, l:"g97fN-h-34I"},
+    {t:"이브, 프시케 그리고 푸른 수염의 아내", a:"르세라핌", y:2023, l:"dZs_cLHfnNA"},
+    {t:"꽃", a:"지수 (JISOO)", y:2023, l:"FstE_9OnL_0"},
+    {t:"Hype Boy", a:"뉴진스 (NewJeans)", y:2022, l:"T--6HBX2K4g"},
+    {t:"사건의 지평선", a:"윤하", y:2022, l:"Y-6_z6_Y-A8"},
+    {t:"내가 아니라도", a:"주호", y:2022, l:"bfMTbfdSPPk"},
+    {t:"Monologue", a:"테이 (Tei)", y:2022, l:"wQEzVfYNHhw"},
+    {t:"LOVE DIVE", a:"IVE (아이브)", y:2022, l:"l-jZOXa7gQY"},
+    {t:"취중고백", a:"김민석 (멜로망스)", y:2021, l:"X0_77_zK-Bw"},
+    {t:"나의 X에게", a:"경서", y:2022, l:"S1JB_T6Fths"},
+    {t:"사랑인가 봐", a:"멜로망스", y:2022, l:"UoBsiQW23IY"},
+    {t:"봄여름가을겨울 (Still Life)", a:"BIGBANG", y:2022, l:"eN5mG_yMDiM"},
+    {t:"새삥", a:"지코 (ZICO)", y:2022, l:"azaZt7eccnc"},
+    {t:"TOMBOY", a:"(여자)아이들", y:2022, l:"Jh4QFaPvoss"},
+    {t:"사랑은 늘 도망가", a:"임영웅", y:2021, l:"fS_n5OBeX80"},
+    {t:"신호등", a:"이무진", y:2021, l:"SK6Sm2Ki9tI"},
+    {t:"Next Level", a:"에스파 (aespa)", y:2021, l:"4TWR90KJl84"},
+    {t:"바라만 본다", a:"MSG워너비 (M.O.M)", y:2021, l:"XWp_w0C_OqM"},
+    {t:"다정히 내 이름을 부르면", a:"경서예지", y:2021, l:"R96lF9eR2B8"},
+    {t:"라일락", a:"아이유 (IU)", y:2021, l:"v7bnOxL4jzs"},
+    {t:"Butter", a:"방탄소년단 (BTS)", y:2021, l:"WMweEpGlu_U"},
+    {t:"Celebrity", a:"아이유 (IU)", y:2021, l:"0-q1KafFCLU"},
+    {t:"헤픈 우연", a:"헤이즈 (Heize)", y:2021, l:"AcM58z_K_k0"},
+    {t:"Dun Dun Dance", a:"오마이걸", y:2021, l:"y3_mK_XoWno"},
+    {t:"찐이야", a:"영탁", y:2020, l:"vVjN5u7O6zU"},
+    {t:"시작", a:"가호 (Gaho)", y:2020, l:"3-X_k6S1r2M"},
+    {t:"아로하", a:"조정석", y:2020, l:"3DOkxW5Te2s"},
+    {t:"이제 나만 믿어요", a:"임영웅", y:2020, l:"83u8hKx_D1k"},
+    {t:"밤하늘의 별을 (2020)", a:"경서", y:2020, l:"scS8pY72Nf0"},
+    {t:"Dynamite", a:"방탄소년단 (BTS)", y:2020, l:"zJCdkOpU90g"},
+    {t:"아무노래", a:"지코 (ZICO)", y:2020, l:"UuV2BmJ1p_I"},
+    {t:"에잇", a:"아이유 (IU)", y:2020, l:"TgOu00Mf3AI"},
+    {t:"살짝 설렜어 (Nonstop)", a:"오마이걸", y:2020, l:"299XF2iR638"},
+    {t:"눈누난나", a:"제시 (Jessi)", y:2020, l:"_p_69nO-Y0I"},
+    {t:"주저하는 연인들을 위해", a:"잔나비", y:2019, l:"G_H_S8V_OXY"},
+    {t:"사랑에 연습이 있었다면", a:"임재현", y:2018, l:"8Vre6_p_C_g"},
+    {t:"흔들리는 꽃들 속에서...", a:"장범준", y:2019, l:"1O9pX8fXf8I"},
+    {t:"어떻게 이별까지 사랑하겠어...", a:"AKMU (악뮤)", y:2019, l:"mAKsZ26SabQ"},
+    {t:"오늘도 빛나는 너에게", a:"마크툽 (MAKTUB)", y:2019, l:"fWf5fV_19fE"},
+    {t:"사계 (Four Seasons)", a:"태연 (TAEYEON)", y:2019, l:"hVAc1VfSrhs"},
+    {t:"노래방에서", a:"장범준", y:2019, l:"V_R-t-yY_8M"},
+    {t:"니가 왜 거기서 나와", a:"영탁", y:2018, l:"mKk9I_2M83Y"},
+    {t:"작은 것들을 위한 시", a:"방탄소년단 (BTS)", y:2019, l:"XsX3ATc3FbA"},
+    {t:"모든 날, 모든 순간", a:"폴킴", y:2018, l:"Y8Xm6Yv_S6Y"},
+    {t:"Way Back Home", a:"숀 (SHAUN)", y:2018, l:"9R_X_L8m1_E"},
+    {t:"지나오다", a:"닐로 (Nilo)", y:2017, l:"saK6H76TyMI"},
+    {t:"사랑을 했다", a:"iKON", y:2018, l:"vecSVX1QYbQ"},
+    {t:"뚜두뚜두", a:"블랙핑크", y:2018, l:"IHNzOHi8sJs"},
+    {t:"그때 헤어지면 돼", a:"로이킴", y:2018, l:"2S9_9-eI_pA"},
+    {t:"좋니", a:"윤종신", y:2017, l:"7pXz6Z7v_XY"},
+    {t:"선물", a:"멜로망스", y:2017, l:"qDaxpUv6L2w"},
+    {t:"첫눈처럼 너에게 가겠다", a:"에일리 (Ailee)", y:2017, l:"uKofV4e2PzQ"},
+    {t:"가시나", a:"선미 (SUNMI)", y:2017, l:"2W-7i_O9M8M"},
+    {t:"밤편지", a:"아이유 (IU)", y:2017, l:"BzYnNdAj_8E"},
+    {t:"나야 나 (PICK ME)", a:"Wanna One", y:2017, l:"NIld_iEc67s"},
+    {t:"비도 오고 그래서", a:"헤이즈 (Heize)", y:2017, l:"afxLaQiLC-U"},
+    {t:"이 소설의 끝을 다시...", a:"한동근", y:2014, l:"z95f9Hn9G_s"},
+    {t:"우주를 줄게", a:"볼빨간사춘기", y:2016, l:"9U8uA7Apt7k"},
+    {t:"CHEER UP", a:"트와이스 (TWICE)", y:2016, l:"c7rCyll5AeY"},
+    {t:"내가 저지른 사랑", a:"임창정", y:2016, l:"O-p93p573_s"},
+    {t:"널 사랑하지 않아", a:"어반자카파", y:2016, l:"Yp83u6sK948"},
+    {t:"청춘 (Feat. 김창완)", a:"김필", y:2015, l:"B8S-P_B8I0A"},
+    {t:"또 다시 사랑", a:"임창정", y:2015, l:"R_0XpInuKq4"},
+    {t:"이럴거면 그러지말지", a:"백아연", y:2015, l:"m4vP-O5m6q4"},
+    {t:"위아래", a:"EXID", y:2014, l:"hfXZ6ydGZyo"},
+    {t:"야생화", a:"박효신", y:2014, l:"OxgiiyLp5pk"},
+    {t:"신촌을 못 가", a:"포스트맨", y:2013, l:"xS5P0aQ2J2Q"},
+    {t:"썸 (Some)", a:"소유 & 정기고", y:2014, l:"Y-FhDScM_2w"},
+    {t:"눈, 코, 입", a:"태양 (TAEYANG)", y:2014, l:"FqE2Y_6X6X8"},
+    {t:"걱정말아요 그대", a:"이적", y:2015, l:"pM7cM1S1N6s"},
+    {t:"Bounce", a:"조용필", y:2013, l:"0_u6L3K_Hq0"},
+    {t:"안동역에서", a:"진성", y:2012, l:"LnjVdH2ii_w"},
+    {t:"강남스타일", a:"싸이 (PSY)", y:2012, l:"9bZkp7q19f0"},
+    {t:"벚꽃 엔딩", a:"버스커 버스커", y:2012, l:"tXV7dfvSefo"},
+    {t:"너랑 나", a:"아이유 (IU)", y:2011, l:"NJR8Inf77Ac"},
+    {t:"가질 수 없는 너", a:"뱅크", y:1995, l:"S0T0E_O_u78"},
+    {t:"응급실", a:"izi (이지)", y:2005, l:"pAnK1y7qjuE"},
+    {t:"소주 한 잔", a:"임창정", y:2003, l:"Nf79_90-Uxs"}
+  ];
+
+  const isFile = location.protocol === 'file:';
+  const checkMode = new URLSearchParams(location.search).has('check');
+
+  let songData = [...initialSongData];
+  let lives = 3;
+  let player = null;
+  let playerReady = false;
+  let currentCard = null;   // 지금 재생 중인 카드
+  let playTimer = null;     // 재생이 막혔는지 확인하는 타이머
+  const badIds = new Set(); // 이번 판에서 재생 실패한 영상
+
+  // 점검 모드용
+  let checking = false, checkDone = null, checkTimer = null;
+
+  const list = document.getElementById('sortable-list');
+  const onAirText = document.getElementById('on-air-text');
+  const addBtn = document.getElementById('add-card-btn');
+
+  // 파일을 직접 열면(file://) 유튜브가 재생을 거부함 (오류 153)
+  if (isFile) {
+    const w = document.getElementById('warn-banner');
+    w.style.display = 'block';
+    w.innerText = '⚠️ 파일을 직접 열면 유튜브 음악이 재생되지 않아요. 인터넷 주소(https://…)로 열어주세요.';
+  }
+
+  // ─── 유튜브 플레이어 ───
+  // API 스크립트보다 먼저 정의해 두어야 안전함
+  window.onYouTubeIframeAPIReady = function () {
+    const vars = { autoplay: 0, controls: 0, disablekb: 1, playsinline: 1, rel: 0, fs: 0 };
+    if (!isFile) vars.origin = location.origin;
+    player = new YT.Player('player', {
+      width: '200',
+      height: '200',
+      playerVars: vars,
+      events: {
+        onReady: () => {
+          playerReady = true;
+          if (checkMode) document.getElementById('check-panel').style.display = 'block';
+        },
+        onStateChange: onPlayerState,
+        onError: onPlayerError
+      }
+    });
+  };
+
+  function btnOf(card) { return card.querySelector('.play-btn'); }
+
+  function stopPlayback(msg) {
+    clearTimeout(playTimer);
+    if (player && playerReady) player.stopVideo();
+    if (currentCard) btnOf(currentCard).innerText = '🎧 재생';
+    currentCard = null;
+    onAirText.innerText = msg || '🎵 재생 버튼을 눌러주세요';
+  }
+
+  // 6초 안에 재생이 시작되지 않으면 (주로 휴대폰 자동재생 차단) 다시 누르라고 안내
+  function armTimer(card) {
+    clearTimeout(playTimer);
+    playTimer = setTimeout(() => {
+      if (currentCard !== card) return;
+      if (player.getPlayerState() !== YT.PlayerState.PLAYING) {
+        btnOf(card).innerText = '🎧 다시 재생';
+        onAirText.innerText = '👆 재생이 막혔어요. 버튼을 한 번 더 눌러주세요';
+      }
+    }, 6000);
+  }
+
+  function handlePlay(card) {
+    if (!playerReady) return alert("유튜브 플레이어가 아직 준비되지 않았습니다. 잠시만 기다려주세요.");
+    const btn = btnOf(card);
+
+    // 같은 카드를 다시 누른 경우
+    if (currentCard === card) {
+      const st = player.getPlayerState();
+      if (st === YT.PlayerState.PLAYING || st === YT.PlayerState.BUFFERING) {
+        stopPlayback();
+        return;
+      }
+      // 불러왔는데 막혀 있던 경우 → 이번 터치로 다시 재생 시도
+      player.unMute();
+      player.playVideo();
+      btn.innerText = '✖ 정지';
+      onAirText.innerText = '⏳ 불러오는 중...';
+      armTimer(card);
+      return;
+    }
+
+    if (currentCard) btnOf(currentCard).innerText = '🎧 재생';
+    currentCard = card;
+    player.unMute();
+    player.setVolume(100);
+    player.loadVideoById(card.song.l);
+    btn.innerText = '✖ 정지';
+    onAirText.innerText = '⏳ 불러오는 중...';
+    armTimer(card);
+  }
+
+  function onPlayerState(e) {
+    if (checking) {
+      if (e.data === YT.PlayerState.PLAYING) finishCheck('ok');
+      return;
+    }
+    if (!currentCard) return;
+    if (e.data === YT.PlayerState.PLAYING) {
+      clearTimeout(playTimer);
+      btnOf(currentCard).innerText = '✖ 정지';
+      onAirText.innerText = '📻 NOW PLAYING...';
+    } else if (e.data === YT.PlayerState.ENDED) {
+      stopPlayback();
+    }
+  }
+
+  function onPlayerError(e) {
+    if (checking) { finishCheck('err', e.data); return; }
+
+    const card = currentCard;
+    stopPlayback();
+    if (!card) return;
+
+    if (e.data === 153) {
+      onAirText.innerText = '🚫 유튜브 설정 오류(153): 인터넷 주소로 열어주세요';
+      return;
+    }
+
+    badIds.add(card.song.l);
+    console.warn('재생 불가:', card.song.t, '-', card.song.a, card.song.l, '오류코드', e.data);
+
+    if (card.classList.contains('revealed')) {
+      onAirText.innerText = '🚫 이 곡은 재생할 수 없어요';
+      return;
+    }
+
+    // 아직 정답 공개 전이면 다른 곡으로 조용히 교체 (라이프 손해 없음)
+    const next = drawSong();
+    if (!next) {
+      onAirText.innerText = '🚫 재생 가능한 곡이 더 없어요';
+      return;
+    }
+    setCardSong(card, next);
+    onAirText.innerText = '🔁 재생 안 되는 곡이라 다른 곡으로 바꿨어요. 다시 눌러주세요!';
+  }
+
+  // ─── 게임 ───
+  new Sortable(list, { 
+    animation: 250, 
+    handle: '.drag-handle'
+  });
+
+  function drawSong() {
+    while (songData.length) {
+      const s = songData.splice(Math.floor(Math.random() * songData.length), 1)[0];
+      if (!badIds.has(s.l)) return s;
+    }
+    return null;
+  }
+
+  function setCardSong(card, song) {
+    card.song = song;
+    card.dataset.year = song.y;
+    card.querySelector('.year-tag').innerText = song.y;
+  }
+
+  function updateUI() {
+    document.getElementById('life-container').innerText = `LIVES: ${'❤️'.repeat(Math.max(0, lives))}`;
+    if (lives <= 0) document.getElementById('game-over-screen').style.display = 'flex';
+    addBtn.disabled = !!document.querySelector('.card:not(.revealed)');
+  }
+
+  function addCard() {
+    if (document.querySelector('.card:not(.revealed)')) return alert("정답을 먼저 확인해주세요!");
+    const song = drawSong();
+    if (!song) return alert("모든 카드를 사용했습니다!");
+
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="drag-handle"></div>
+      <button class="play-btn">🎧 재생</button>
+      <span class="info-text">? ? ? - ? ? ?</span>
+      <span class="year-tag"></span>
+    `;
+    setCardSong(card, song);
+
+    btnOf(card).onclick = (e) => {
+      e.stopPropagation();
+      handlePlay(card);
+    };
+
+    card.onclick = () => checkAnswer(card);
+    list.appendChild(card);
+    updateUI();
+  }
+
+  function checkAnswer(card) {
+    if (card.classList.contains('revealed') || lives <= 0) return;
+    const all = Array.from(document.querySelectorAll('.card'));
+    const idx = all.indexOf(card);
+    const yr = parseInt(card.dataset.year);
+    const years = all.map(c => parseInt(c.dataset.year));
+
+    let ok = true;
+    for (let i = 0; i < idx; i++) if (years[i] > yr) ok = false;
+    for (let i = idx + 1; i < years.length; i++) if (years[i] < yr) ok = false;
+
+    card.classList.add('revealed');
+    card.querySelector('.info-text').innerText = `${card.song.a} - ${card.song.t}`;
+
+    if (ok) {
+      card.classList.add('correct');
+    } else {
+      card.classList.add('wrong');
+      lives--;
+      updateUI();
+      setTimeout(() => {
+        if (currentCard === card) stopPlayback();
+        card.remove();
+        updateUI();
+      }, 1200);
+    }
+    updateUI();
+  }
+
+  addBtn.onclick = addCard;
+  document.getElementById('reveal-all-btn').onclick = () => document.querySelectorAll('.card').forEach(c => checkAnswer(c));
+  document.getElementById('reset-btn').onclick = () => location.reload();
+  document.getElementById('retry-btn').onclick = () => location.reload();
+  updateUI();
+
+  // ─── 곡 점검 모드: 주소 끝에 ?check 를 붙여서 열면 나타남 ───
+  function errText(c) {
+    if (c === 100) return '영상 없음/비공개 (100)';
+    if (c === 101 || c === 150) return '퍼가기(임베드) 금지 (150)';
+    if (c === 2) return '잘못된 영상 ID (2)';
+    if (c === 5) return '재생기 오류 (5)';
+    if (c === 153) return '유튜브 설정 오류 (153) - 파일로 열었는지 확인';
+    return '오류 ' + c;
+  }
+
+  function testVideo(id) {
+    return new Promise(resolve => {
+      checkDone = resolve;
+      checkTimer = setTimeout(() => finishCheck('timeout'), 12000);
+      player.loadVideoById(id);
+    });
+  }
+
+  function finishCheck(status, code) {
+    if (!checkDone) return;
+    clearTimeout(checkTimer);
+    const done = checkDone;
+    checkDone = null;
+    let title = '';
+    if (status === 'ok') {
+      try { title = player.getVideoData().title || '(제목 없음)'; } catch (err) { title = '(제목 확인 불가)'; }
+    }
+    player.stopVideo();
+    setTimeout(() => done({ status, code, title }), 300);
+  }
+
+  async function runCheck() {
+    const startBtn = document.getElementById('check-start');
+    const progress = document.getElementById('check-progress');
+    const out = document.getElementById('check-results');
+    startBtn.disabled = true;
+    stopPlayback();
+    checking = true;
+    player.mute();
+    out.innerHTML = '';
+    let badCount = 0;
+
+    for (let i = 0; i < initialSongData.length; i++) {
+      const s = initialSongData[i];
+      progress.innerText = `점검 중... ${i + 1} / ${initialSongData.length}`;
+      const r = await testVideo(s.l);
+      const row = document.createElement('div');
+      row.className = 'chk-row';
+      const label = `${s.t} - ${s.a}  [${s.l}]`;
+      if (r.status === 'ok') {
+        row.classList.add('chk-ok');
+        row.innerText = `✅ ${label}\n     ↳ 실제 영상 제목: ${r.title}`;
+        out.appendChild(row);
+      } else {
+        badCount++;
+        row.classList.add(r.status === 'err' ? 'chk-bad' : 'chk-warn');
+        row.innerText = r.status === 'err'
+          ? `❌ ${label} → ${errText(r.code)}`
+          : `⏱ ${label} → 응답 없음 (시간 초과)`;
+        out.prepend(row);
+      }
+    }
+
+    player.stopVideo();
+    player.unMute();
+    checking = false;
+    startBtn.disabled = false;
+    progress.innerText = `점검 완료! 문제 있는 곡 ${badCount}개 (맨 위 빨간/노란 줄). 초록 줄도 '실제 영상 제목'이 그 노래가 맞는지 확인해 주세요.`;
+  }
+
+  document.getElementById('check-start').onclick = runCheck;
+  document.getElementById('check-close').onclick = () => {
+    if (checking) return alert('점검이 끝난 뒤에 닫아주세요.');
+    document.getElementById('check-panel').style.display = 'none';
+  };
+</script>
+<!-- 콜백 함수를 먼저 정의한 뒤에 유튜브 API를 불러옴 -->
+<script src="https://www.youtube.com/iframe_api"></script>
+</body>
+</html>
