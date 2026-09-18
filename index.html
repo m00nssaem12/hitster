@@ -58,11 +58,13 @@
 
 <div id="check-panel">
   <h2 style="font-family:'Black Han Sans'; color:#FFD700; text-align:center;">🔍 곡 점검 모드</h2>
-  <p style="text-align:center; word-break:keep-all;">모든 곡을 음소거로 하나씩 틀어 보며 재생되는지 확인해요. 곡이 많아서 몇 분 걸려요.</p>
+  <p style="text-align:center; word-break:keep-all;">모든 곡을 음소거로 하나씩 틀어 보며 재생되는지 확인해요. 곡이 많아서 몇 분 걸려요. 여기서 발견된 재생 불가 곡은 이후 게임에서 자동으로 제외됩니다.</p>
   <div style="text-align:center;">
     <button id="check-start">점검 시작</button>
     <button id="check-close">닫기</button>
+    <button id="check-reset-blocklist">🗑️ 제외 목록 초기화</button>
   </div>
+  <p id="check-blocklist-info" style="text-align:center; color:#BDC3C7; font-size:0.85rem;"></p>
   <p id="check-progress" style="text-align:center; color:#FFD700; font-weight:700; word-break:keep-all;"></p>
   <div id="check-results"></div>
 </div>
@@ -198,7 +200,19 @@
   let playerReady = false;
   let currentCard = null;   // 지금 재생 중인 카드
   let playTimer = null;     // 재생이 막혔는지 확인하는 타이머
-  const badIds = new Set(); // 이번 판에서 재생 실패한 영상
+  const badIds = new Set(); // 이번 판에서 재생 실패한 영상 (+ 영구 저장된 것도 여기 합쳐짐)
+
+  const BAD_IDS_KEY = 'hitsterKpopBadIds';
+  function loadBadIds() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(BAD_IDS_KEY) || '[]');
+      saved.forEach(id => badIds.add(id));
+    } catch (err) { /* 저장된 게 없거나 읽기 실패해도 그냥 진행 */ }
+  }
+  function persistBadIds() {
+    try { localStorage.setItem(BAD_IDS_KEY, JSON.stringify([...badIds])); } catch (err) { /* 저장 실패해도 게임엔 지장 없음 */ }
+  }
+  loadBadIds();
 
   // 점검 모드용
   let checking = false, checkDone = null, checkTimer = null;
@@ -294,6 +308,7 @@
     if (!currentCard) return;
     if (e.data === YT.PlayerState.PLAYING) {
       clearTimeout(playTimer);
+      currentCard.dataset.heard = '1';
       btnOf(currentCard).innerText = '✖ 정지';
       onAirText.innerText = '📻 NOW PLAYING...';
     } else if (e.data === YT.PlayerState.ENDED) {
@@ -313,7 +328,21 @@
       return;
     }
 
+    // 오류코드 5는 보통 일시적인 오류라, 같은 곡으로 한 번만 재시도해봄
+    if (e.data === 5 && card.dataset.retried !== '1') {
+      card.dataset.retried = '1';
+      currentCard = card;
+      player.unMute();
+      player.setVolume(100);
+      player.loadVideoById(card.song.l);
+      btnOf(card).innerText = '✖ 정지';
+      onAirText.innerText = '⏳ 다시 불러오는 중...';
+      armTimer(card);
+      return;
+    }
+
     badIds.add(card.song.l);
+    persistBadIds();
     console.warn('재생 불가:', card.song.t, '-', card.song.a, card.song.l, '오류코드', e.data);
 
     if (card.classList.contains('revealed')) {
@@ -348,6 +377,8 @@
   function setCardSong(card, song) {
     card.song = song;
     card.dataset.year = song.y;
+    card.dataset.heard = '0'; // 이 곡으로는 아직 (재)생 성공한 적 없음
+    card.dataset.retried = '0'; // 이 곡으로는 아직 재시도 안 함
     card.querySelector('.year-tag').innerText = song.y;
   }
 
@@ -382,8 +413,12 @@
     updateUI();
   }
 
-  function checkAnswer(card) {
+  function checkAnswer(card, force) {
     if (card.classList.contains('revealed') || lives <= 0) return;
+    if (!force && card.dataset.heard !== '1') {
+      onAirText.innerText = '🎧 아직 이 곡을 못 들었어요! 재생 버튼을 눌러 듣고 나서 카드를 눌러주세요';
+      return;
+    }
     const all = Array.from(document.querySelectorAll('.card'));
     const idx = all.indexOf(card);
     const yr = parseInt(card.dataset.year);
@@ -412,7 +447,7 @@
   }
 
   addBtn.onclick = addCard;
-  document.getElementById('reveal-all-btn').onclick = () => document.querySelectorAll('.card').forEach(c => checkAnswer(c));
+  document.getElementById('reveal-all-btn').onclick = () => document.querySelectorAll('.card').forEach(c => checkAnswer(c, true));
   document.getElementById('reset-btn').onclick = () => location.reload();
   document.getElementById('retry-btn').onclick = () => location.reload();
   updateUI();
@@ -472,6 +507,7 @@
         out.appendChild(row);
       } else {
         badCount++;
+        if (r.status === 'err') { badIds.add(s.l); persistBadIds(); }
         row.classList.add(r.status === 'err' ? 'chk-bad' : 'chk-warn');
         row.innerText = r.status === 'err'
           ? `❌ ${label} → ${errText(r.code)}`
@@ -484,7 +520,8 @@
     player.unMute();
     checking = false;
     startBtn.disabled = false;
-    progress.innerText = `점검 완료! 문제 있는 곡 ${badCount}개 (맨 위 빨간/노란 줄). 초록 줄도 '실제 영상 제목'이 그 노래가 맞는지 확인해 주세요.`;
+    progress.innerText = `점검 완료! 문제 있는 곡 ${badCount}개 (맨 위 빨간/노란 줄) 중 ❌ 표시된 곡은 앞으로 게임에서 자동으로 제외됩니다. 초록 줄도 '실제 영상 제목'이 그 노래가 맞는지 확인해 주세요.`;
+    updateBlocklistInfo();
   }
 
   document.getElementById('check-start').onclick = runCheck;
@@ -492,6 +529,17 @@
     if (checking) return alert('점검이 끝난 뒤에 닫아주세요.');
     document.getElementById('check-panel').style.display = 'none';
   };
+  document.getElementById('check-reset-blocklist').onclick = () => {
+    if (checking) return alert('점검이 끝난 뒤에 눌러주세요.');
+    if (!confirm('지금까지 재생 실패로 자동 제외된 곡 목록을 전부 초기화할까요?')) return;
+    badIds.clear();
+    persistBadIds();
+    updateBlocklistInfo();
+  };
+  function updateBlocklistInfo() {
+    document.getElementById('check-blocklist-info').innerText = `현재 자동 제외된 곡: ${badIds.size}개`;
+  }
+  updateBlocklistInfo();
 </script>
 <!-- 콜백 함수를 먼저 정의한 뒤에 유튜브 API를 불러옴 -->
 <script src="https://www.youtube.com/iframe_api"></script>
