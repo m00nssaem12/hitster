@@ -89,109 +89,243 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
 <script>
   const initialSongData = [
-    {t:"Good Goodbye", a:"화사 (HWASA)", y:2024, l:"-COVx822UK0"},
-    {t:"타임캡슐", a:"다비치 (DAVICHI)", y:2024, l:"qE35JN1ogeI"},
-    {t:"APT.", a:"로제 & Bruno Mars", y:2024, l:"qzDJnlrqNyo"},
-    {t:"천상연", a:"이창섭", y:2024, l:"N0S2I6l2B3o"},
-    {t:"나는 반딧불", a:"황가람", y:2024, l:"xL_cd1DJan8"},
-    {t:"Whiplash", a:"에스파 (aespa)", y:2024, l:"M8GAZhSPSgg"},
+    {t:"Good Goodbye", a:"화사 (HWASA)", y:2025, l:"QxGt54-oh1A"},
+    {t:"타임캡슐", a:"다비치 (DAVICHI)", y:2025, l:"qE35JN1ogeI"},
+    {t:"APT.", a:"로제 & Bruno Mars", y:2024, l:"ekr2nIex040"},
+    {t:"천상연", a:"이창섭", y:2024, l:"BXzoYQ-3ETs"},
+    {t:"나는 반딧불", a:"황가람", y:2024, l:"YRcYiIBuWMQ"},
+    {t:"Whiplash", a:"에스파 (aespa)", y:2024, l:"jWQx2f-CErU"},
     {t:"녹아내려요", a:"DAY6", y:2024, l:"yss4rIrHl6o"},
-    {t:"고민중독", a:"QWER", y:2024, l:"hFTs6HbtxbE"},
-    {t:"한 페이지가 될 수 있게", a:"DAY6", y:2019, l:"oYvgISKD5Y8"},
-    {t:"Supernova", a:"에스파 (aespa)", y:2024, l:"ePFc3Hjb3V0"},
-    {t:"밤양갱", a:"비비 (BIBI)", y:2024, l:"usnFQzpbFYg"},
-    {t:"소나기", a:"이클립스 (ECLIPSE)", y:2024, l:"MQMzMgqcuKk"},
-    {t:"첫 만남은 계획대로 되지 않아", a:"TWS (투어스)", y:2024, l:"eBc5raE5UDM"},
-    {t:"How Sweet", a:"뉴진스 (NewJeans)", y:2024, l:"iR2Uq2LINyU"},
-    {t:"SPOT!", a:"지코 (ZICO) feat. JENNIE", y:2024, l:"aQEpCqSDavc"},
+    {t:"고민중독", a:"QWER", y:2024, l:"ImuWa3SJulY"},
+    {t:"한 페이지가 될 수 있게", a:"DAY6", y:2019, l:"vnS_jn2uibs"},
+    {t:"Supernova", a:"에스파 (aespa)", y:2024, l:"phuiiNCxRMg"},
+    {t:"밤양갱", a:"비비 (BIBI)", y:2024, l:"smdmEhkIRVc"},
+    {t:"소나기", a:"이클립스 (ECLIPSE)", y:2024, l:"fBB4MaBybyg"},
+    {t:"첫 만남은 계획대로 되지 않아", a:"TWS (투어스)", y:2024, l:"x-Om0G8Dwis"},
+    {t:"How Sweet", a:"뉴진스 (NewJeans)", y:2024, l:"Q3K0TOvTOno"},
+    {t:"SPOT!", a:"지코 (ZICO) feat. JENNIE", y:2024, l:"xfqBQ2XhBCg"},
     {t:"Magnetic", a:"아일릿 (ILLIT)", y:2024, l:"Vk5-c_v4gMU"},
-    {t:"헤어지자 말해요", a:"박재정", y:2023, l:"vUw9IkCWEGk"},
-    {t:"Ditto", a:"뉴진스 (NewJeans)", y:2022, l:"Km71Rr9K-Bw"},
+    {t:"헤어지자 말해요", a:"박재정", y:2023, l:"yFlxYHjHYAw"},
+    {t:"Ditto", a:"뉴진스 (NewJeans)", y:2022, l:"pSUydWEqKwE"},
     {t:"Seven", a:"정국 feat. Latto", y:2023, l:"QU9c0053UAU"},
     {t:"I AM", a:"IVE (아이브)", y:2023, l:"6ZUIwj3FgUY"},
     {t:"Love Lee", a:"AKMU (악뮤)", y:2023, l:"EIz09kLzN9k"},
-    {t:"Queencard", a:"(여자)아이들", y:2023, l:"7HDe6vG_0Fk"},
-    {t:"사막에서 꽃을 피우듯", a:"우디 (Woody)", y:2023, l:"g97fN-h-34I"},
+    {t:"Queencard", a:"(여자)아이들", y:2023, l:"AKg_9dn_VmA"},
+    {t:"사막에서 꽃을 피우듯", a:"우디 (Woody)", y:2023, l:"tKwEOu3vJZw"},
     {t:"이브, 프시케 그리고 푸른 수염의 아내", a:"르세라핌", y:2023, l:"dZs_cLHfnNA"},
-    {t:"꽃", a:"지수 (JISOO)", y:2023, l:"FstE_9OnL_0"},
-    {t:"Hype Boy", a:"뉴진스 (NewJeans)", y:2022, l:"T--6HBX2K4g"},
-    {t:"사건의 지평선", a:"윤하", y:2022, l:"Y-6_z6_Y-A8"},
-    {t:"내가 아니라도", a:"주호", y:2022, l:"bfMTbfdSPPk"},
-    {t:"Monologue", a:"테이 (Tei)", y:2022, l:"wQEzVfYNHhw"},
-    {t:"LOVE DIVE", a:"IVE (아이브)", y:2022, l:"l-jZOXa7gQY"},
-    {t:"취중고백", a:"김민석 (멜로망스)", y:2021, l:"X0_77_zK-Bw"},
+    {t:"꽃", a:"지수 (JISOO)", y:2023, l:"YudHcBIxlYw"},
+    {t:"Hype Boy", a:"뉴진스 (NewJeans)", y:2022, l:"11cta61wi0g"},
+    {t:"사건의 지평선", a:"윤하", y:2022, l:"73V3xrfiYMo"},
+    {t:"내가 아니라도", a:"주호", y:2022, l:"JhQUSnaR4MM"},
+    {t:"Monologue", a:"테이 (Tei)", y:2022, l:"IeDb7OrnGNE"},
+    {t:"LOVE DIVE", a:"IVE (아이브)", y:2022, l:"Y8JFxS1HlDo"},
+    {t:"취중고백", a:"김민석 (멜로망스)", y:2021, l:"xg8hEEz6-mc"},
     {t:"나의 X에게", a:"경서", y:2022, l:"S1JB_T6Fths"},
     {t:"사랑인가 봐", a:"멜로망스", y:2022, l:"UoBsiQW23IY"},
     {t:"봄여름가을겨울 (Still Life)", a:"BIGBANG", y:2022, l:"eN5mG_yMDiM"},
-    {t:"새삥", a:"지코 (ZICO)", y:2022, l:"azaZt7eccnc"},
-    {t:"TOMBOY", a:"(여자)아이들", y:2022, l:"Jh4QFaPvoss"},
-    {t:"사랑은 늘 도망가", a:"임영웅", y:2021, l:"fS_n5OBeX80"},
+    {t:"새삥", a:"지코 (ZICO)", y:2022, l:"4TCGq3QSXVc"},
+    {t:"TOMBOY", a:"(여자)아이들", y:2022, l:"Jh4QFaPmdss"},
+    {t:"사랑은 늘 도망가", a:"임영웅", y:2021, l:"Jr_2uyCJVUc"},
     {t:"신호등", a:"이무진", y:2021, l:"SK6Sm2Ki9tI"},
     {t:"Next Level", a:"에스파 (aespa)", y:2021, l:"4TWR90KJl84"},
-    {t:"바라만 본다", a:"MSG워너비 (M.O.M)", y:2021, l:"XWp_w0C_OqM"},
-    {t:"다정히 내 이름을 부르면", a:"경서예지", y:2021, l:"R96lF9eR2B8"},
-    {t:"라일락", a:"아이유 (IU)", y:2021, l:"v7bnOxL4jzs"},
+    {t:"바라만 본다", a:"MSG워너비 (M.O.M)", y:2021, l:"EAd95AvzgtM"},
+    {t:"다정히 내 이름을 부르면", a:"경서예지", y:2021, l:"YPvrhziJAno"},
+    {t:"라일락", a:"아이유 (IU)", y:2021, l:"v7bnOxV4jAc"},
     {t:"Butter", a:"방탄소년단 (BTS)", y:2021, l:"WMweEpGlu_U"},
     {t:"Celebrity", a:"아이유 (IU)", y:2021, l:"0-q1KafFCLU"},
-    {t:"헤픈 우연", a:"헤이즈 (Heize)", y:2021, l:"AcM58z_K_k0"},
-    {t:"Dun Dun Dance", a:"오마이걸", y:2021, l:"y3_mK_XoWno"},
-    {t:"찐이야", a:"영탁", y:2020, l:"vVjN5u7O6zU"},
-    {t:"시작", a:"가호 (Gaho)", y:2020, l:"3-X_k6S1r2M"},
-    {t:"아로하", a:"조정석", y:2020, l:"3DOkxW5Te2s"},
-    {t:"이제 나만 믿어요", a:"임영웅", y:2020, l:"83u8hKx_D1k"},
-    {t:"밤하늘의 별을 (2020)", a:"경서", y:2020, l:"scS8pY72Nf0"},
-    {t:"Dynamite", a:"방탄소년단 (BTS)", y:2020, l:"zJCdkOpU90g"},
+    {t:"헤픈 우연", a:"헤이즈 (Heize)", y:2021, l:"muiacgAvm3g"},
+    {t:"Dun Dun Dance", a:"오마이걸", y:2021, l:"g_KSTUDq9NE"},
+    {t:"찐이야", a:"영탁", y:2020, l:"NzBwu7AXF1E"},
+    {t:"시작", a:"가호 (Gaho)", y:2020, l:"o99aQZ62nCQ"},
+    {t:"아로하", a:"조정석", y:2020, l:"3DOkxQ3HDXE"},
+    {t:"이제 나만 믿어요", a:"임영웅", y:2020, l:"sLqZxb4xjJw"},
+    {t:"밤하늘의 별을 (2020)", a:"경서", y:2020, l:"NuTNPV72rFo"},
+    {t:"Dynamite", a:"방탄소년단 (BTS)", y:2020, l:"gdZLi9oWNZg"},
     {t:"아무노래", a:"지코 (ZICO)", y:2020, l:"UuV2BmJ1p_I"},
-    {t:"에잇", a:"아이유 (IU)", y:2020, l:"TgOu00Mf3AI"},
-    {t:"살짝 설렜어 (Nonstop)", a:"오마이걸", y:2020, l:"299XF2iR638"},
-    {t:"눈누난나", a:"제시 (Jessi)", y:2020, l:"_p_69nO-Y0I"},
-    {t:"주저하는 연인들을 위해", a:"잔나비", y:2019, l:"G_H_S8V_OXY"},
-    {t:"사랑에 연습이 있었다면", a:"임재현", y:2018, l:"8Vre6_p_C_g"},
-    {t:"흔들리는 꽃들 속에서...", a:"장범준", y:2019, l:"1O9pX8fXf8I"},
-    {t:"어떻게 이별까지 사랑하겠어...", a:"AKMU (악뮤)", y:2019, l:"mAKsZ26SabQ"},
-    {t:"오늘도 빛나는 너에게", a:"마크툽 (MAKTUB)", y:2019, l:"fWf5fV_19fE"},
-    {t:"사계 (Four Seasons)", a:"태연 (TAEYEON)", y:2019, l:"hVAc1VfSrhs"},
-    {t:"노래방에서", a:"장범준", y:2019, l:"V_R-t-yY_8M"},
-    {t:"니가 왜 거기서 나와", a:"영탁", y:2018, l:"mKk9I_2M83Y"},
+    {t:"에잇", a:"아이유 (IU)", y:2020, l:"TgOu00Mf3kI"},
+    {t:"살짝 설렜어 (Nonstop)", a:"오마이걸", y:2020, l:"iDjQSdN_ig8"},
+    {t:"눈누난나", a:"제시 (Jessi)", y:2020, l:"tJQaUW36pMw"},
+    {t:"주저하는 연인들을 위해", a:"잔나비", y:2019, l:"GpQ222I1ULc"},
+    {t:"사랑에 연습이 있었다면", a:"임재현", y:2018, l:"kXAvbHPdTZ0"},
+    {t:"흔들리는 꽃들 속에서...", a:"장범준", y:2019, l:"YBEUXfT7_48"},
+    {t:"어떻게 이별까지 사랑하겠어...", a:"AKMU (악뮤)", y:2019, l:"m3DZsBw5bnE"},
+    {t:"오늘도 빛나는 너에게", a:"마크툽 (MAKTUB)", y:2019, l:"kNYA3H1jSSs"},
+    {t:"사계 (Four Seasons)", a:"태연 (TAEYEON)", y:2019, l:"4HG_CJzyX6A"},
+    {t:"노래방에서", a:"장범준", y:2019, l:"BUzI-awsi1s"},
+    {t:"니가 왜 거기서 나와", a:"영탁", y:2018, l:"88a2RgUjRKk"},
     {t:"작은 것들을 위한 시", a:"방탄소년단 (BTS)", y:2019, l:"XsX3ATc3FbA"},
-    {t:"모든 날, 모든 순간", a:"폴킴", y:2018, l:"Y8Xm6Yv_S6Y"},
-    {t:"Way Back Home", a:"숀 (SHAUN)", y:2018, l:"9R_X_L8m1_E"},
+    {t:"모든 날, 모든 순간", a:"폴킴", y:2018, l:"1q_t6RNuH8c"},
+    {t:"Way Back Home", a:"숀 (SHAUN)", y:2018, l:"NyTH_U88bK0"},
     {t:"지나오다", a:"닐로 (Nilo)", y:2017, l:"saK6H76TyMI"},
     {t:"사랑을 했다", a:"iKON", y:2018, l:"vecSVX1QYbQ"},
     {t:"뚜두뚜두", a:"블랙핑크", y:2018, l:"IHNzOHi8sJs"},
-    {t:"그때 헤어지면 돼", a:"로이킴", y:2018, l:"2S9_9-eI_pA"},
-    {t:"좋니", a:"윤종신", y:2017, l:"7pXz6Z7v_XY"},
-    {t:"선물", a:"멜로망스", y:2017, l:"qDaxpUv6L2w"},
-    {t:"첫눈처럼 너에게 가겠다", a:"에일리 (Ailee)", y:2017, l:"uKofV4e2PzQ"},
-    {t:"가시나", a:"선미 (SUNMI)", y:2017, l:"2W-7i_O9M8M"},
+    {t:"그때 헤어지면 돼", a:"로이킴", y:2018, l:"SkN_hWI6n28"},
+    {t:"좋니", a:"윤종신", y:2017, l:"b1kQvZhQ6_M"},
+    {t:"선물", a:"멜로망스", y:2017, l:"qYYJqWsBb1U"},
+    {t:"첫눈처럼 너에게 가겠다", a:"에일리 (Ailee)", y:2017, l:"6rS7OUGXUik"},
+    {t:"가시나", a:"선미 (SUNMI)", y:2017, l:"ur0hCdne2-s"},
     {t:"밤편지", a:"아이유 (IU)", y:2017, l:"BzYnNdAj_8E"},
     {t:"나야 나 (PICK ME)", a:"Wanna One", y:2017, l:"NIld_iEc67s"},
-    {t:"비도 오고 그래서", a:"헤이즈 (Heize)", y:2017, l:"afxLaQiLC-U"},
-    {t:"이 소설의 끝을 다시...", a:"한동근", y:2014, l:"z95f9Hn9G_s"},
-    {t:"우주를 줄게", a:"볼빨간사춘기", y:2016, l:"9U8uA7Apt7k"},
+    {t:"비도 오고 그래서", a:"헤이즈 (Heize)", y:2017, l:"afxLaQiLu-o"},
+    {t:"이 소설의 끝을 다시...", a:"한동근", y:2014, l:"rzNNIYy-AUM"},
+    {t:"우주를 줄게", a:"볼빨간사춘기", y:2016, l:"9U8uA702xrE"},
     {t:"CHEER UP", a:"트와이스 (TWICE)", y:2016, l:"c7rCyll5AeY"},
-    {t:"내가 저지른 사랑", a:"임창정", y:2016, l:"O-p93p573_s"},
-    {t:"널 사랑하지 않아", a:"어반자카파", y:2016, l:"Yp83u6sK948"},
-    {t:"청춘 (Feat. 김창완)", a:"김필", y:2015, l:"B8S-P_B8I0A"},
-    {t:"또 다시 사랑", a:"임창정", y:2015, l:"R_0XpInuKq4"},
-    {t:"이럴거면 그러지말지", a:"백아연", y:2015, l:"m4vP-O5m6q4"},
-    {t:"위아래", a:"EXID", y:2014, l:"hfXZ6ydGZyo"},
+    {t:"내가 저지른 사랑", a:"임창정", y:2016, l:"L-2M_-QLs8k"},
+    {t:"널 사랑하지 않아", a:"어반자카파", y:2016, l:"MfYPKZl7W1w"},
+    {t:"청춘 (Feat. 김창완)", a:"김필", y:2015, l:"jqZ2Ie4pd30"},
+    {t:"또 다시 사랑", a:"임창정", y:2015, l:"ejrhM4cLN-U"},
+    {t:"이럴거면 그러지말지", a:"백아연", y:2015, l:"3c7WvOi15cA"},
+    {t:"위아래", a:"EXID", y:2014, l:"hfXZ6ydgZyo"},
     {t:"야생화", a:"박효신", y:2014, l:"OxgiiyLp5pk"},
-    {t:"신촌을 못 가", a:"포스트맨", y:2013, l:"xS5P0aQ2J2Q"},
+    {t:"신촌을 못 가", a:"포스트맨", y:2013, l:"vtl6LRmcXrg"},
     {t:"썸 (Some)", a:"소유 & 정기고", y:2014, l:"Y-FhDScM_2w"},
-    {t:"눈, 코, 입", a:"태양 (TAEYANG)", y:2014, l:"FqE2Y_6X6X8"},
-    {t:"걱정말아요 그대", a:"이적", y:2015, l:"pM7cM1S1N6s"},
-    {t:"Bounce", a:"조용필", y:2013, l:"0_u6L3K_Hq0"},
-    {t:"안동역에서", a:"진성", y:2012, l:"LnjVdH2ii_w"},
+    {t:"눈, 코, 입", a:"태양 (TAEYANG)", y:2014, l:"UwuAPyOImoI"},
+    {t:"걱정말아요 그대", a:"이적", y:2015, l:"Dic27EnDDls"},
+    {t:"Bounce", a:"조용필", y:2013, l:"QXrIvlzu1SQ"},
+    {t:"안동역에서", a:"진성", y:2012, l:"XSmtB5diePU"},
     {t:"강남스타일", a:"싸이 (PSY)", y:2012, l:"9bZkp7q19f0"},
     {t:"벚꽃 엔딩", a:"버스커 버스커", y:2012, l:"tXV7dfvSefo"},
     {t:"너랑 나", a:"아이유 (IU)", y:2011, l:"NJR8Inf77Ac"},
-    {t:"가질 수 없는 너", a:"뱅크", y:1995, l:"S0T0E_O_u78"},
+    {t:"가질 수 없는 너", a:"뱅크", y:1995, l:"sho5lLCt0M0"},
     {t:"응급실", a:"izi (이지)", y:2005, l:"pAnK1y7qjuE"},
-    {t:"소주 한 잔", a:"임창정", y:2003, l:"Nf79_90-Uxs"}
+    {t:"소주 한 잔", a:"임창정", y:2003, l:"57RdgpX8LD8"},
+
+    // ↓↓↓ 새로 추가된 곡들 (ID 정확도 미검증 — 꼭 점검 모드(?check)로 확인해주세요) ↓↓↓
+    {t:"DNA", a:"방탄소년단 (BTS)", y:2017, l:"MBdVXkSdhwU"},
+    {t:"IDOL", a:"방탄소년단 (BTS) feat. Nicki Minaj", y:2018, l:"pBuZEGYXA6E"},
+    {t:"Kill This Love", a:"블랙핑크 (BLACKPINK)", y:2019, l:"2S24-y0Ij3Y"},
+    {t:"How You Like That", a:"블랙핑크 (BLACKPINK)", y:2020, l:"ioNng23DkIM"},
+    {t:"GENTLEMAN", a:"싸이 (PSY)", y:2013, l:"ASO_zypdnsQ"},
+    {t:"TT", a:"트와이스 (TWICE)", y:2016, l:"ePpPVE_GJUU"},
+    {t:"FANCY", a:"트와이스 (TWICE)", y:2019, l:"kOHB85vDuow"},
+    {t:"Red Flavor", a:"레드벨벳 (Red Velvet)", y:2017, l:"WyiIGEHQP8o"},
+    {t:"Growl", a:"EXO", y:2013, l:"I3dezFzsNss"},
+    {t:"Gee", a:"소녀시대 (Girls' Generation)", y:2009, l:"U7mPqycQ0tQ"},
+    {t:"내가 제일 잘 나가", a:"2NE1", y:2011, l:"j7_lSP8Vc3o"},
+    {t:"Super Shy", a:"뉴진스 (NewJeans)", y:2023, l:"ArmDp-zijuc"},
+    {t:"WANNABE", a:"있지 (ITZY)", y:2020, l:"fE2h3lGlOsk"},
+
+    // ↓↓↓ 두 번째로 추가된 곡들 (ID 정확도 미검증 — 꼭 점검 모드(?check)로 확인해주세요) ↓↓↓
+    {t:"MIC Drop", a:"방탄소년단 (BTS)", y:2017, l:"kTlv5_Bs8aw"},
+    {t:"FAKE LOVE", a:"방탄소년단 (BTS)", y:2018, l:"7C2z4GqqS5E"},
+    {t:"As If It's Your Last", a:"블랙핑크 (BLACKPINK)", y:2017, l:"Amq-qlqbjYA"},
+    {t:"Pink Venom", a:"블랙핑크 (BLACKPINK)", y:2022, l:"gQlMMD8auMs"},
+    {t:"Like OOH-AHH", a:"트와이스 (TWICE)", y:2015, l:"0rtV5esQT6I"},
+    {t:"좋은 날 (Good Day)", a:"아이유 (IU)", y:2010, l:"jeqdYqsrsA0"},
+    {t:"Blueming", a:"아이유 (IU)", y:2019, l:"D1PvIWdJ8xo"},
+    {t:"LATATA", a:"(여자)아이들", y:2018, l:"p4RIhcY7V3c"},
+    {t:"달라달라 (DALLA DALLA)", a:"있지 (ITZY)", y:2019, l:"pNfTK39k55U"},
+    {t:"Cherry Bomb", a:"NCT 127", y:2017, l:"WkuHLzMMTZM"},
+    {t:"박수 (CLAP)", a:"세븐틴 (SEVENTEEN)", y:2017, l:"CyzEtbG-sxY"},
+    {t:"Nobody", a:"원더걸스 (Wonder Girls)", y:2008, l:"QZBn1e9pr2Q"},
+
+    // ↓↓↓ 세 번째로 추가된 곡들 (ID 미검증) ↓↓↓
+    {t:"봄날 (Spring Day)", a:"방탄소년단 (BTS)", y:2017, l:"xEeFrLSkMm8"},
+    {t:"Permission to Dance", a:"방탄소년단 (BTS)", y:2021, l:"CuklIb9d3fI"},
+    {t:"What is Love?", a:"트와이스 (TWICE)", y:2018, l:"i0p1bmr0EmE"},
+    {t:"Feel Special", a:"트와이스 (TWICE)", y:2019, l:"3ymwOvzhwHs"},
+    {t:"Forever Young", a:"블랙핑크 (BLACKPINK)", y:2018, l:"dyRsYk0BiPM"},
+    {t:"Bad Boy", a:"레드벨벳 (Red Velvet)", y:2018, l:"J_CFBjAyPWE"},
+    {t:"Love Shot", a:"EXO", y:2018, l:"pSudEWBAYRE"},
+    {t:"ELEVEN", a:"IVE (아이브)", y:2021, l:"--FmExEAsM8"},
+    {t:"Savage", a:"에스파 (aespa)", y:2021, l:"WPdWvnAAurg"},
+    {t:"FANTASTIC BABY", a:"BIGBANG", y:2012, l:"AAbokV76tkU"},
+    {t:"Hot Sauce", a:"NCT DREAM", y:2021, l:"PkKnp4SdE-w"},
+    {t:"Nxde", a:"(여자)아이들", y:2022, l:"fCO7f0SmrDc"},
+    {t:"다시 만난 세계 (Into the New World)", a:"소녀시대 (Girls' Generation)", y:2007, l:"0k2Zzkw_-0I"},
+    {t:"Ring Ding Dong", a:"샤이니 (SHINee)", y:2009, l:"roughtzsCDI"},
+    {t:"Mister", a:"카라 (Kara)", y:2009, l:"Uod8EE_bFWE"},
+
+    // ↓↓↓ 네 번째로 추가된 곡들 (ID 미검증 — 나중에 Opus 5로 점검 예정) ↓↓↓
+    {t:"거짓말 (Lies)", a:"빅뱅 (BIGBANG)", y:2007, l:"2Cv3phvP8Ro"},
+    {t:"뱅뱅뱅 (BANG BANG BANG)", a:"빅뱅 (BIGBANG)", y:2015, l:"2ips2mM7Zqw"},
+    {t:"Sorry Sorry", a:"슈퍼주니어 (Super Junior)", y:2009, l:"x6QA3m58DQw"},
+    {t:"Lucifer", a:"샤이니 (SHINee)", y:2010, l:"Dww9UjJ4Dt8"},
+    {t:"I Got a Boy", a:"소녀시대 (Girls' Generation)", y:2013, l:"wq7ftOZBy0E"},
+    {t:"Fire", a:"2NE1", y:2009, l:"I3tuZF1qizQ"},
+    {t:"Bad Girl Good Girl", a:"미쓰에이 (Miss A)", y:2010, l:"sdtspSYyQXs"},
+    {t:"NoNoNo", a:"에이핑크 (Apink)", y:2013, l:"n3XJQtJWKJM"},
+    {t:"Touch My Body", a:"씨스타 (SISTAR)", y:2014, l:"Q33SoblaZbU"},
+    {t:"심쿵해 (Heart Attack)", a:"AOA", y:2015, l:"1pBgMBBsv4k"},
+    {t:"기대해 (Expectation)", a:"걸스데이 (Girl's Day)", y:2013, l:"t8YXut6_56c"},
+    {t:"삐삐 (BBIBBI)", a:"아이유 (IU)", y:2018, l:"nM0xDI5R50E"},
+    {t:"벌써 12시 (Gotta Go)", a:"청하 (CHUNGHA)", y:2019, l:"HlN2BXNJzxA"},
+    {t:"Bubble Pop!", a:"현아 (HyunA)", y:2011, l:"bw9CALKOvAI"},
+    {t:"한숨 (Breathe)", a:"이하이 (Lee Hi)", y:2016, l:"5iSlfF8TQ9k"},
+    {t:"삐딱하게 (CROOKED)", a:"지드래곤 (G-DRAGON)", y:2013, l:"RKhsHGfrFmY"},
+    {t:"나쁜 기집애 (The Baddest Female)", a:"CL", y:2013, l:"7LP4foN3Xs4"},
+    {t:"S-Class (특)", a:"스트레이 키즈 (Stray Kids)", y:2023, l:"JsOOis4bBFg"},
+    {t:"신메뉴 (God's Menu)", a:"스트레이 키즈 (Stray Kids)", y:2020, l:"TQTlCHxyuu8"},
+    {t:"Guerrilla", a:"에이티즈 (ATEEZ)", y:2022, l:"2HcVZm_4qAI"},
+    {t:"Bite Me", a:"엔하이픈 (ENHYPEN)", y:2023, l:"wXFLzODIdUI"},
+    {t:"Sugar Rush Ride", a:"투모로우바이투게더 (TXT)", y:2023, l:"P9tKTxbgdkk"},
+    {t:"Just Right", a:"갓세븐 (GOT7)", y:2015, l:"vrdk3IGcau8"},
+    {t:"Hero", a:"몬스타엑스 (Monsta X)", y:2015, l:"FZ9lJ5ctd0s"},
+    {t:"REALLY REALLY", a:"위너 (WINNER)", y:2017, l:"4tBnF46ybZk"},
+    {t:"Candy", a:"NCT DREAM", y:2022, l:"zuoSn3ObMz4"},
+    {t:"Sticker", a:"NCT 127", y:2021, l:"1oYWnbTSang"},
+    {t:"ETA", a:"뉴진스 (NewJeans)", y:2023, l:"jOTfBlKSQYY"},
+    {t:"UNFORGIVEN", a:"르세라핌 (LE SSERAFIM)", y:2023, l:"UBURTj20HXI"},
+    {t:"Antifragile", a:"르세라핌 (LE SSERAFIM)", y:2022, l:"pyf8cbqyfPs"},
+    {t:"O.O", a:"엔믹스 (NMIXX)", y:2022, l:"3GWscde8rM8"},
+    {t:"ASAP", a:"스테이씨 (STAYC)", y:2021, l:"NsY-9MCOIAQ"},
+    {t:"WA DA DA", a:"케플러 (Kep1er)", y:2022, l:"n0j5NPptyM0"},
+    {t:"SHEESH", a:"베이비몬스터 (BABYMONSTER)", y:2024, l:"2wA_b6YHjqQ"},
+    {t:"In BLOOM", a:"제로베이스원 (ZEROBASEONE)", y:2023, l:"trzeUClQIIg"},
+    {t:"One and Only", a:"보이넥스트도어 (BOYNEXTDOOR)", y:2023, l:"jizAb-SLvtM"},
+    {t:"Get A Guitar", a:"라이즈 (RIIZE)", y:2023, l:"iUw3LPM7OBU"},
+    {t:"Boom Boom Bass", a:"라이즈 (RIIZE)", y:2024, l:"78lNnCitcBM"},
+    {t:"Sticky", a:"키스오브라이프 (KISS OF LIFE)", y:2024, l:"IajeQM00yfE"},
+    {t:"Almond Chocolate", a:"아일릿 (ILLIT)", y:2025, l:"qjebIv8FYMI"},
+    {t:"Mantra", a:"제니 (JENNIE)", y:2024, l:"bB3-CUMERIU"},
+    {t:"like JENNIE", a:"제니 (JENNIE)", y:2025, l:"JSFG-IE8n_c"},
+    {t:"number one girl", a:"로제 (ROSÉ)", y:2024, l:"pZ1NdE69VTs"},
+    {t:"Drama", a:"에스파 (aespa)", y:2023, l:"D8VEhcPeSlc"},
+    {t:"Girls", a:"에스파 (aespa)", y:2022, l:"dYRITmpFbJ4"},
+    {t:"Black Mamba", a:"에스파 (aespa)", y:2020, l:"ZeerrnuLi5E"},
+    {t:"Kitsch", a:"아이브 (IVE)", y:2023, l:"pG6iaOMV46I"},
+    {t:"New Jeans", a:"뉴진스 (NewJeans)", y:2023, l:"kcelgrGY1h8"},
+    {t:"Attention", a:"뉴진스 (NewJeans)", y:2022, l:"js1CtxSY38I"},
+    {t:"Cookie", a:"뉴진스 (NewJeans)", y:2022, l:"VOmIplFAGeg"},
+    {t:"Bubble Gum", a:"뉴진스 (NewJeans)", y:2024, l:"ft70sAYrFyY"},
+    {t:"EASY", a:"르세라핌 (LE SSERAFIM)", y:2024, l:"bNKXxwOQYB8"},
+    {t:"Crazy", a:"르세라핌 (LE SSERAFIM)", y:2024, l:"n6B5gQXlB-0"},
+    {t:"Perfect Night", a:"르세라핌 (LE SSERAFIM)", y:2023, l:"hLvWy2b857I"},
+    {t:"Cool with You", a:"뉴진스 (NewJeans)", y:2023, l:"zsYSSVoQnP4"},
+    {t:"갑자기 분위기 싸해질 필요 없잖아요", a:"스트레이 키즈 (Stray Kids)", y:2018, l:"y289In1OdZI"},
+    {t:"Alcohol-Free", a:"트와이스 (TWICE)", y:2021, l:"XA2YEHn-A8Q"},
+    {t:"MOONLIGHT SUNRISE", a:"트와이스 (TWICE)", y:2023, l:"cKlEE_EYuNM"},
+    {t:"Super", a:"세븐틴 (SEVENTEEN)", y:2023, l:"-GQg25oP0S4"}
   ];
 
   const isFile = location.protocol === 'file:';
+
+  // ─── 재생 시작 위치 ───
+  // MV 앞부분의 소속사 로고·효과음·대사를 건너뛰기 위해 기본 N초부터 재생
+  // 곡마다 다르게 하려면 곡 데이터에 s:초 를 추가 (예: {t:"...", a:"...", y:2020, l:"...", s:45})
+  // s:0 이면 처음부터 재생
+  const DEFAULT_START = 30;
+  function startOf(song) { return (typeof song.s === 'number') ? song.s : DEFAULT_START; }
+  // ─── 재생 시간 제한 ───
+  // 한 번 재생하면 PLAY_LIMIT초 뒤 자동으로 멈춤 (0이면 제한 없음)
+  const PLAY_LIMIT = 30;
+  function loadSong(song) {
+    const opts = { videoId: song.l, startSeconds: startOf(song) };
+    if (PLAY_LIMIT > 0) opts.endSeconds = startOf(song) + PLAY_LIMIT;
+    player.loadVideoById(opts);
+  }
+  let tickTimer = null;     // 남은 시간 표시 + 시간 초과 시 정지
+  function startTick() {
+    clearInterval(tickTimer);
+    if (PLAY_LIMIT <= 0) return;
+    tickTimer = setInterval(() => {
+      if (!currentCard) { clearInterval(tickTimer); return; }
+      const end = startOf(currentCard.song) + PLAY_LIMIT;
+      const left = Math.ceil(end - player.getCurrentTime());
+      if (left <= 0) stopPlayback('⏱ 시간 끝! 연도를 맞혀 보세요');
+      else onAirText.innerText = '📻 NOW PLAYING... ' + left + '초';
+    }, 500);
+  }
   const checkMode = new URLSearchParams(location.search).has('check');
 
   let songData = [...initialSongData];
@@ -252,6 +386,7 @@
 
   function stopPlayback(msg) {
     clearTimeout(playTimer);
+    clearInterval(tickTimer);
     if (player && playerReady) player.stopVideo();
     if (currentCard) btnOf(currentCard).innerText = '🎧 재생';
     currentCard = null;
@@ -294,7 +429,7 @@
     currentCard = card;
     player.unMute();
     player.setVolume(100);
-    player.loadVideoById(card.song.l);
+    loadSong(card.song);
     btn.innerText = '✖ 정지';
     onAirText.innerText = '⏳ 불러오는 중...';
     armTimer(card);
@@ -311,8 +446,9 @@
       currentCard.dataset.heard = '1';
       btnOf(currentCard).innerText = '✖ 정지';
       onAirText.innerText = '📻 NOW PLAYING...';
+      startTick();
     } else if (e.data === YT.PlayerState.ENDED) {
-      stopPlayback();
+      stopPlayback(PLAY_LIMIT > 0 ? '⏱ 시간 끝! 연도를 맞혀 보세요' : undefined);
     }
   }
 
@@ -334,7 +470,7 @@
       currentCard = card;
       player.unMute();
       player.setVolume(100);
-      player.loadVideoById(card.song.l);
+      loadSong(card.song);
       btnOf(card).innerText = '✖ 정지';
       onAirText.innerText = '⏳ 다시 불러오는 중...';
       armTimer(card);
