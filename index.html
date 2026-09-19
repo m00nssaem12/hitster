@@ -3,91 +3,282 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>HITSTER K-POP</title>
+<title>힛스터</title>
+
+<!-- Firebase (온라인 모드용) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=swap');
   @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
-  
-  body { 
-    background-color: #2C3E50; color: white; font-family: 'Pretendard', sans-serif; 
-    text-align: center; margin: 0; padding: 10px; overflow-x: hidden;
-    touch-action: pan-y;
+
+  :root{
+    --bg:#2C3E50; --bg2:#1a252f; --card:#34495E; --gold:#FFD700; --gold-d:#b89b00;
+    --line:#3d5266; --ok:#27ae60; --bad:#9b59b6; --danger:#e74c3c; --orange:#e67e22;
+    --disp:'Black Han Sans',sans-serif; --body:'Pretendard',sans-serif;
   }
-  h1 { font-family: 'Black Han Sans', sans-serif; color: #FFD700; font-size: 2.2rem; margin: 10px 0; }
-  #life-container { font-family: 'Black Han Sans', sans-serif; font-size: 1.5rem; color: #FFD700; margin-bottom: 10px; }
-  #warn-banner { display: none; background: #e74c3c; color: #fff; padding: 10px 14px; border-radius: 8px; margin: 6px auto 10px; max-width: 500px; font-weight: 700; font-size: 0.9rem; word-break: keep-all; }
-  .btn-group { position: sticky; top: 0; background: #2C3E50; padding: 10px; z-index: 1000; display: flex; justify-content: center; gap: 8px; border-bottom: 2px solid #34495E; }
-  .btn-group button { background: #FFD700; color: #000; border: none; padding: 10px 15px; border-radius: 8px; font-weight: 800; font-size: 0.9rem; cursor: pointer; box-shadow: 0 3px #b89b00; }
-  .btn-group button:disabled { background: #7f8c8d; box-shadow: none; opacity: 0.5; }
-  .reset-btn { background: #e74c3c !important; color: #fff !important; box-shadow: 0 3px #c0392b !important; }
-  #sortable-list { padding: 15px; max-width: 500px; margin: 10px auto 100px; background: #1a252f; border-radius: 15px; border: 2px dashed #FFD700; min-height: 100px; }
-  .card { background: #34495E; border: 2px solid #FFD700; padding: 10px; border-radius: 12px; margin-bottom: 10px; display: flex; align-items: center; position: relative; touch-action: none; }
-  .drag-handle { width: 35px; height: 45px; background: #5D6D7E; border-radius: 4px; margin-right: 12px; display: flex; align-items: center; justify-content: center; cursor: grab; font-size: 1.2rem; flex-shrink: 0; }
-  .drag-handle::before { content: "⋮⋮"; color: #BDC3C7; }
-  .play-btn { background: #FFD700; color: #000; border: none; padding: 10px 14px; border-radius: 8px; font-weight: bold; font-size: 0.9rem; z-index: 10; flex-shrink: 0; box-shadow: 0 3px #b89b00; cursor: pointer; }
-  .info-text { flex: 1; text-align: left; margin-left: 12px; font-weight: 700; font-size: 1rem; pointer-events: none; word-break: keep-all; }
-  .year-tag { background: #FFD700; color: #000; padding: 5px 10px; border-radius: 6px; font-weight: 900; font-size: 1rem; display: none; margin-left: 5px; }
-  .card.revealed .year-tag { display: block !important; }
-  .card.correct { background: #27ae60 !important; border-color: #2ecc71 !important; }
-  .card.wrong { background: #9b59b6 !important; border-color: #8e44ad !important; }
-  .blind-box { position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background: #000; border-top: 3px solid #FFD700; z-index: 9999; display: flex; align-items: center; justify-content: center; }
-  #on-air-text { color: #FFD700; font-family: 'Black Han Sans'; font-size: 0.95rem; padding: 0 12px; word-break: keep-all; }
+  *{box-sizing:border-box}
+  body{background:var(--bg);color:#fff;font-family:var(--body);text-align:center;margin:0;padding:0;overflow-x:hidden;touch-action:pan-y}
+  h1,h2,h3{font-weight:800;color:var(--gold);margin:0 0 10px;letter-spacing:-.01em}
+  .btn{background:var(--gold);color:#000;border:none;padding:11px 18px;border-radius:10px;font-weight:600;font-size:.95rem;cursor:pointer;box-shadow:0 3px var(--gold-d);font-family:var(--body)}
+  .btn:active{transform:translateY(2px);box-shadow:0 1px var(--gold-d)}
+  .btn:disabled{background:#7f8c8d;box-shadow:none;opacity:.55;cursor:default}
+  .btn.big{padding:15px 26px;font-size:1.12rem;font-weight:700;letter-spacing:.01em}
+  .btn.ghost{background:transparent;color:var(--gold);border:2px solid var(--gold);box-shadow:none}
+  .btn.small{padding:7px 12px;font-size:.82rem}
+  .btn.warn{background:var(--danger);color:#fff;box-shadow:0 3px #a93226}
+  .btn.on{background:var(--ok);color:#fff;box-shadow:0 3px #1e8449}
+  input{font-family:var(--body);font-size:1rem;padding:11px 12px;border-radius:10px;border:2px solid var(--line);background:#22303d;color:#fff}
+  input:focus{outline:none;border-color:var(--gold)}
 
-  /* 유튜브는 200x200보다 작은 플레이어의 재생을 막을 수 있어서, 크기는 유지하고 눈에만 안 보이게 함 */
-  #player-wrapper { position: fixed; bottom: 0; left: 0; width: 200px; height: 200px; opacity: 0.01; pointer-events: none; z-index: 1; }
+  .screen{display:none;min-height:100dvh;flex-direction:column}
+  .screen.on{display:flex}
+  .wrap{flex:1;padding:14px;max-width:560px;margin:0 auto;width:100%}
+  .bar{position:sticky;top:0;z-index:40;background:var(--bg);display:flex;gap:6px;align-items:center;padding:9px 12px;border-bottom:2px solid var(--line)}
+  .bar .sp{flex:1}
+  .bar .logo{font-family:var(--disp);color:var(--gold);font-size:1.15rem}
+  .pill{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:3px 10px;font-size:.75rem;font-weight:700}
+  .credit{padding:16px 0 22px;color:#8fa3b5;font-size:.85rem;letter-spacing:.04em}
+  .panel{background:var(--bg2);border:2px solid var(--line);border-radius:16px;padding:18px;text-align:left}
+  .note{color:#9fb3c6;font-size:.88rem;line-height:1.65;word-break:keep-all;margin:.4rem 0}
+  .field{margin:14px 0}
+  .field label{display:block;font-weight:800;margin-bottom:6px;font-size:.9rem}
+  .row{display:flex;gap:8px}
+  .warnbox{background:#5a3e00;border:1px solid var(--gold);border-radius:10px;padding:10px 12px;font-size:.85rem;line-height:1.6;word-break:keep-all;margin-bottom:12px}
 
-  #game-over-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10001; flex-direction: column; justify-content: center; align-items: center; }
+  /* 첫 화면 */
+  #home .hero{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:24px 16px}
+  .logo-big{font-family:var(--disp);font-size:4.2rem;color:var(--gold);line-height:1;letter-spacing:.02em;text-shadow:0 5px 0 var(--gold-d)}
+  .logo-sub{font-family:var(--disp);font-size:1.05rem;color:#9fb3c6;letter-spacing:.35em;margin:8px 0 2px}
+  .lead{color:#c3d3e0;font-size:.95rem;line-height:1.7;word-break:keep-all;max-width:380px;margin:16px 0 26px}
+  .home-btns{display:flex;flex-direction:column;gap:12px;width:100%;max-width:280px}
+
+  .count{display:flex;flex-wrap:wrap;gap:8px}
+  .count button{background:var(--card);color:#fff;border:2px solid var(--line);width:52px;height:52px;border-radius:12px;font-weight:700;font-size:1.2rem;cursor:pointer}
+  .count button.sel{background:var(--gold);color:#000;border-color:#fff}
+  .code{font-family:var(--disp);font-size:2.6rem;color:var(--gold);letter-spacing:.3em;text-align:center;margin:4px 0 10px}
+  .plist{list-style:none;padding:0;margin:12px 0}
+  .plist li{display:flex;align-items:center;gap:8px;padding:9px 10px;border-bottom:1px solid var(--line);font-weight:700}
+  .tag{background:var(--card);border-radius:6px;padding:2px 7px;font-size:.72rem;color:#c3d3e0;font-weight:700}
+  .dot{width:10px;height:10px;border-radius:50%;background:#7f8c8d;flex:none}
+  .dot.good{background:#2ecc71}.dot.mid{background:#f1c40f}.dot.bad{background:#e67e22}
+  .dot.stale{background:#e74c3c}.dot.off{background:#7f8c8d}
+
+  /* 게임판 */
+  #turnBanner{font-family:var(--disp);font-size:1.3rem;color:var(--gold);margin:10px 0 3px;word-break:keep-all}
+  #turnSub{color:#9fb3c6;font-size:.86rem;margin-bottom:9px;word-break:keep-all;padding:0 10px}
+  #board{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:9px}
+  .chip{background:var(--card);border:2px solid var(--line);border-radius:20px;padding:5px 12px;font-size:.83rem;font-weight:700;white-space:nowrap}
+  .chip.active{background:var(--gold);color:#000;border-color:#fff}
+  .chip .dot{display:inline-block;margin-right:4px;vertical-align:middle}
+
+  #timeline{padding:13px;max-width:520px;margin:0 auto 12px;background:var(--bg2);border-radius:15px;border:2px dashed var(--gold);min-height:90px}
+  .card{background:var(--card);border:2px solid var(--gold);padding:9px;border-radius:12px;margin-bottom:9px;display:flex;align-items:center;touch-action:none}
+  .drag-handle{width:32px;height:42px;background:#5D6D7E;border-radius:4px;margin-right:10px;display:flex;align-items:center;justify-content:center;cursor:grab;flex-shrink:0}
+  .drag-handle::before{content:"⋮⋮";color:#BDC3C7}
+  .card.locked .drag-handle{opacity:.22;cursor:default}
+  .card.nodrag .drag-handle{display:none}
+  .play-btn{background:var(--gold);color:#000;border:none;padding:9px 13px;border-radius:8px;font-weight:bold;font-size:.88rem;flex-shrink:0;box-shadow:0 3px var(--gold-d);cursor:pointer}
+  .info-text{flex:1;text-align:left;margin-left:11px;font-weight:700;font-size:.97rem;pointer-events:none;word-break:keep-all}
+  .year-tag{background:var(--gold);color:#000;padding:5px 9px;border-radius:6px;font-weight:900;font-size:.97rem;display:none;margin-left:5px}
+  .card.revealed .year-tag{display:block}
+  .card.correct{background:var(--ok);border-color:#2ecc71}
+  .card.wrong{background:var(--bad);border-color:#8e44ad}
+  .card.taken{background:#1f6f4a;border-color:#2ecc71}
+  .acts{position:sticky;bottom:64px;z-index:30;background:var(--bg);padding:9px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;border-top:2px solid var(--line)}
+  .acts .answer{flex:0 0 100%;max-width:440px;margin:0 auto 2px}
+  .acts .answer .note{margin:0 0 5px;font-size:.78rem}
+  .acts .answer .row{display:flex;gap:6px}
+  .acts .answer input{flex:1;min-width:0;padding:8px 10px;font-size:.9rem}
+  .acts .judge-q{flex:0 0 100%;color:var(--gold);font-weight:700;font-size:.9rem;margin-bottom:2px;word-break:keep-all}
+  #askBar{max-width:520px;margin:0 auto 10px;padding:0 8px}
+  #askBar .t{color:var(--gold);font-weight:800;font-size:.92rem;margin-bottom:8px;word-break:keep-all}
+  #askBar button{background:var(--orange);color:#fff;border:none;padding:9px 14px;border-radius:9px;font-weight:800;font-size:.85rem;cursor:pointer;margin:0 4px 6px;box-shadow:0 3px #b35f0c}
+  #askBar button.pass{background:#7f8c8d;box-shadow:0 3px #5d6d6e}
+
+  .onair{position:fixed;bottom:0;left:0;width:100%;min-height:58px;background:#000;border-top:3px solid var(--gold);z-index:44;display:none;align-items:center;justify-content:center;padding:6px 12px}
+  .onair.on{display:flex}
+  #onAir{color:var(--gold);font-family:var(--disp);font-size:.92rem;word-break:keep-all;line-height:1.4}
+  #ytWrap{position:fixed;bottom:0;left:0;width:200px;height:200px;opacity:.01;pointer-events:none;z-index:1}
+
+  #connBar{display:none;position:fixed;top:0;left:0;width:100%;background:var(--danger);color:#fff;font-weight:800;font-size:.85rem;padding:7px;z-index:60}
+  #connBar.on{display:block}
+  #toast{position:fixed;left:50%;bottom:86px;transform:translateX(-50%);background:#000;border:2px solid var(--gold);color:var(--gold);padding:10px 16px;border-radius:12px;font-weight:700;font-size:.9rem;z-index:70;opacity:0;pointer-events:none;transition:opacity .2s;max-width:88vw;word-break:keep-all}
+  #toast.on{opacity:1}
+
+  .ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:80;overflow-y:auto;padding:20px}
+  .ov.on{display:block}
+  .ov .inner{max-width:520px;margin:0 auto;text-align:left}
+  .ov h2{text-align:center}
+  .ov p,.ov li{color:#dfe9f1;line-height:1.75;word-break:keep-all;font-size:.93rem}
+
+  /* 채팅 */
+  .chat-btn{position:fixed;right:14px;bottom:74px;z-index:45;width:52px;height:52px;border-radius:50%;padding:0;font-size:23px;display:none;align-items:center;justify-content:center;background:var(--gold);color:#000;border:0;box-shadow:0 4px 0 var(--gold-d);cursor:pointer}
+  .chat-btn.on{display:flex}
+  .chat-badge{position:absolute;top:-4px;right:-4px;background:var(--danger);color:#fff;font-size:.72rem;border-radius:999px;min-width:20px;height:20px;display:none;align-items:center;justify-content:center;padding:0 5px;border:2px solid var(--bg)}
+  .chat-badge.on{display:flex}
+  .chat-box{position:fixed;right:14px;bottom:134px;z-index:46;width:300px;max-width:92vw;max-height:56vh;display:none;flex-direction:column;background:var(--bg2);border:2px solid var(--gold);border-radius:16px;overflow:hidden}
+  .chat-box.on{display:flex}
+  .chat-top{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(0,0,0,.35);font-weight:700;color:var(--gold)}
+  .chat-top button{background:transparent;border:0;cursor:pointer;color:#c3d3e0;font-size:.85rem}
+  .chat-log{flex:1;overflow-y:auto;padding:9px 12px;display:flex;flex-direction:column;gap:5px;min-height:110px;font-size:.92rem;text-align:left}
+  .chat-m{line-height:1.45;word-break:break-word}
+  .chat-m .who{color:var(--gold);margin-right:5px;font-weight:800}
+  .chat-m.me .who{color:#8be07a}
+  .chat-none{opacity:.55;font-size:.86rem;text-align:center;margin:auto 0}
+  .chat-tip{display:none;padding:6px 12px;font-size:.83rem;background:var(--gold);color:#000;font-weight:700}
+  .chat-tip.on{display:block}
+  .chat-in{display:flex;gap:6px;padding:9px;border-top:1px solid var(--line)}
+  .chat-in input{font-size:.92rem;padding:8px 10px;min-width:0;flex:1}
+  @media(max-width:520px){ .chat-box{right:4vw;left:4vw;width:auto} }
 
   /* 곡 점검 모드 (?check) */
-  #check-panel { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.96); z-index: 10002; overflow-y: auto; padding: 20px; }
-  #check-panel button { background: #FFD700; color: #000; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 800; cursor: pointer; margin: 0 4px; }
-  #check-panel button:disabled { opacity: 0.5; }
-  #check-results { max-width: 700px; margin: 0 auto; text-align: left; }
-  .chk-row { padding: 7px 8px; border-bottom: 1px solid #34495E; font-size: 0.85rem; white-space: pre-wrap; }
-  .chk-ok { color: #55efc4; }
-  .chk-bad { color: #ff7675; font-weight: 700; }
-  .chk-warn { color: #ffeaa7; font-weight: 700; }
+  #checkPanel{display:none;position:fixed;inset:0;background:rgba(0,0,0,.96);z-index:90;overflow-y:auto;padding:20px}
+  #checkPanel button{margin:0 4px 6px}
+  #checkResults{max-width:700px;margin:0 auto;text-align:left}
+  .chk-row{padding:7px 8px;border-bottom:1px solid var(--line);font-size:.84rem;white-space:pre-wrap}
+  .chk-ok{color:#55efc4}.chk-bad{color:#ff7675;font-weight:700}.chk-warn{color:#ffeaa7;font-weight:700}
 </style>
 </head>
 <body>
 
-<div id="game-over-screen">
-  <button id="retry-btn" style="background:#FFD700; padding:15px 30px; border-radius:30px; border:none; font-family:'Black Han Sans'; font-size:1.5rem; cursor:pointer;">다시 도전 🔄</button>
-  <h2 style="font-family:'Black Han Sans'; font-size: 3rem; color: #e74c3c;">GAME OVER</h2>
-</div>
+<div id="connBar">연결이 끊겼어요 — 다시 연결하는 중…</div>
+<div id="toast"></div>
 
-<div id="check-panel">
-  <h2 style="font-family:'Black Han Sans'; color:#FFD700; text-align:center;">🔍 곡 점검 모드</h2>
-  <p style="text-align:center; word-break:keep-all;">모든 곡을 음소거로 하나씩 틀어 보며 재생되는지 확인해요. 곡이 많아서 10분 안팎 걸려요. 안 나오는 곡은 한 번 더 확인하니 중간에 멈춘 것처럼 보여도 기다려 주세요. 여기서 발견된 재생 불가 곡은 이후 게임에서 자동으로 제외됩니다.</p>
-  <div style="text-align:center;">
-    <button id="check-start">점검 시작</button>
-    <button id="check-close">닫기</button>
-    <button id="check-reset-blocklist">🗑️ 제외 목록 초기화</button>
+<!-- 첫 화면 -->
+<section id="home" class="screen on">
+  <div class="hero">
+    <div class="logo-big">힛스터</div>
+    <div class="logo-sub">K-POP</div>
+    <p class="lead">노래를 듣고 언제 나온 곡인지 맞혀 보세요. 카드를 연도순으로 먼저 10장 모으면 승리!</p>
+    <div class="home-btns">
+      <button class="btn big" data-go="localSetup">로컬 게임</button>
+      <button class="btn big" data-go="onlineSetup">온라인 게임</button>
+      <button class="btn ghost" data-rules>게임 방법</button>
+    </div>
   </div>
-  <p id="check-blocklist-info" style="text-align:center; color:#BDC3C7; font-size:0.85rem;"></p>
-  <p id="check-progress" style="text-align:center; color:#FFD700; font-weight:700; word-break:keep-all;"></p>
-  <div id="check-results"></div>
+  <footer class="credit">made by m00n</footer>
+</section>
+
+<!-- 로컬 설정 -->
+<section id="localSetup" class="screen">
+  <div class="bar"><button class="btn ghost small" data-go="home">← 처음으로</button><span class="sp"></span><button class="btn ghost small" data-rules>게임 방법</button></div>
+  <div class="wrap">
+    <div class="panel">
+      <h2>로컬 게임</h2>
+      <p class="note">기기 하나로 번갈아 가며 해요. 차례가 된 사람이 화면을 보고 카드를 놓으면 됩니다.</p>
+      <div class="field"><label>인원</label><div class="count" id="lcCount"></div></div>
+      <div id="lcNames" style="display:grid;gap:8px"></div>
+      <button class="btn big" id="lcStart" style="width:100%;margin-top:14px">게임 시작</button>
+    </div>
+  </div>
+  <footer class="credit">made by m00n</footer>
+</section>
+
+<!-- 온라인 설정 -->
+<section id="onlineSetup" class="screen">
+  <div class="bar"><button class="btn ghost small" data-go="home">← 처음으로</button><span class="sp"></span><button class="btn ghost small" data-rules>게임 방법</button></div>
+  <div class="wrap">
+    <div class="panel">
+      <h2>온라인 게임</h2>
+      <div id="fbWarn" class="warnbox" hidden>온라인 모드를 쓰려면 코드 안의 <b>firebaseConfig</b>에 Firebase 정보를 채워 주세요. (로컬 게임은 그대로 할 수 있어요)</div>
+      <div id="onResume"></div>
+      <div class="field"><label for="onName">내 이름</label><input type="text" id="onName" maxlength="10" placeholder="이름 (10자까지)" style="width:100%"></div>
+      <button class="btn big" id="onCreate" style="width:100%">방 만들기</button>
+      <div class="field"><label for="onCode">방 코드로 들어가기</label>
+        <div class="row"><input type="text" id="onCode" maxlength="4" placeholder="ABCD" style="flex:1;text-transform:uppercase"><button class="btn" id="onJoin">입장</button></div>
+      </div>
+      <p class="note">2~6명이 각자 기기로 함께할 수 있어요.</p>
+    </div>
+  </div>
+  <footer class="credit">made by m00n</footer>
+</section>
+
+<!-- 대기실 -->
+<section id="lobby" class="screen">
+  <div class="bar"><button class="btn ghost small" id="lbLeave">← 방 나가기</button><span class="sp"></span><button class="btn ghost small" data-rules>게임 방법</button></div>
+  <div class="wrap"><div class="panel" id="lobbyBody"></div></div>
+  <footer class="credit">made by m00n</footer>
+</section>
+
+<!-- 게임 -->
+<section id="game" class="screen">
+  <div class="bar">
+    <span class="logo">힛스터</span>
+    <span class="pill" id="gMode"></span>
+    <span class="sp"></span>
+    <button class="btn ghost small" data-rules>방법</button>
+    <button class="btn ghost small" id="gExit">나가기</button>
+  </div>
+  <div id="turnBanner"></div>
+  <div id="turnSub"></div>
+  <div id="board"></div>
+  <div id="askBar"></div>
+  <div id="timeline"></div>
+  <div class="acts" id="acts"></div>
+  <footer class="credit">made by m00n</footer>
+</section>
+
+<!-- 채팅 -->
+<button class="chat-btn" id="chatBtn" aria-label="채팅 열기">💬<span class="chat-badge" id="chatBadge">0</span></button>
+<div class="chat-box" id="chatBox" role="dialog" aria-label="채팅">
+  <div class="chat-top"><span>💬 채팅</span><button id="chatClose">✕ 닫기</button></div>
+  <div class="chat-log" id="chatLog"></div>
+  <div class="chat-tip" id="chatTip"></div>
+  <div class="chat-in">
+    <input type="text" id="chatInput" maxlength="150" placeholder="메시지 입력...">
+    <button class="btn small" id="chatSend">보내기</button>
+  </div>
 </div>
 
-<h1>HITSTER K-POP</h1>
-<div id="life-container">LIVES: ❤️❤️❤️</div>
-<div id="warn-banner"></div>
+<div class="onair" id="onAirBox"><span id="onAir">🎵 재생 버튼을 눌러주세요</span></div>
+<div id="ytWrap"><div id="ytPlayer"></div></div>
 
-<div class="btn-group">
-  <button id="add-card-btn">➕ 카드 추가</button>
-  <button id="reveal-all-btn">🔓 전체 공개</button>
-  <button id="reset-btn" class="reset-btn">🔄 리셋</button>
+<!-- 게임 방법 -->
+<div class="ov" id="ovRules"><div class="inner" id="rulesBody"></div></div>
+<!-- 결과 -->
+<div class="ov" id="ovOver"><div class="inner" style="text-align:center" id="overBody"></div></div>
+<!-- 나가기 확인 -->
+<div class="ov" id="ovLeave"><div class="inner" style="text-align:center">
+  <h2>나갈까요?</h2><p id="leaveMsg"></p>
+  <button class="btn" id="leaveStay">계속하기</button>
+  <button class="btn warn" id="leaveGo">나가기</button>
+</div></div>
+<!-- 곡 점검 -->
+<div id="checkPanel">
+  <h2>🔍 곡 점검 모드</h2>
+  <p class="note" style="text-align:center;max-width:700px;margin:0 auto 12px">모든 곡을 음소거로 하나씩 틀어 보며 재생되는지 확인해요. 10분 안팎 걸려요. 안 나오는 곡은 한 번 더 확인하니 멈춘 것처럼 보여도 기다려 주세요. 재생 불가로 확인된 곡은 이후 게임에서 자동으로 빠집니다.</p>
+  <div style="text-align:center">
+    <button class="btn" id="checkStart">점검 시작</button>
+    <button class="btn ghost" id="checkClose">닫기</button>
+    <button class="btn ghost" id="checkReset">🗑️ 제외 목록 초기화</button>
+  </div>
+  <p id="checkInfo" class="note" style="text-align:center"></p>
+  <p id="checkProgress" style="text-align:center;color:var(--gold);font-weight:700"></p>
+  <div id="checkResults"></div>
 </div>
 
-<div id="sortable-list"></div>
-
-<div class="blind-box">
-  <span id="on-air-text">🎵 재생 버튼을 눌러주세요</span>
-</div>
-<div id="player-wrapper"><div id="player"></div></div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
 <script>
+/* =========================================================
+   힛스터 (HITSTER) K-POP — made by m00n
+   공식 히트스터 규칙: 카드 10장을 연도순으로 먼저 모으면 승리
+   ========================================================= */
+
+/* Firebase 설정 — 콘솔 > 프로젝트 설정 > 웹 앱에서 복사해 넣으세요.
+   Realtime Database를 만들고 databaseURL도 꼭 넣어야 해요. */
+const firebaseConfig = {
+  apiKey: "AIzaSyDzAv_6WhS3rd3S8MMyoX875dRl1XCoRzw",
+  authDomain: "hitster-c93b2.firebaseapp.com",
+  databaseURL: "https://hitster-c93b2-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "hitster-c93b2",
+  storageBucket: "hitster-c93b2.firebasestorage.app",
+  messagingSenderId: "296967287205",
+  appId: "1:296967287205:web:abd95645f8aadb34d2384c"
+};
+/* 힛스터 전용 Firebase 프로젝트 */
+const P_ROOM = 'hitster/rooms', P_PRES = 'hitster/pres', P_CHAT = 'hitster/chat';
+
   const initialSongData = [
     {t:"Good Goodbye", a:"화사 (HWASA)", y:2025, l:"QxGt54-oh1A"},
     {t:"타임캡슐", a:"다비치 (DAVICHI)", y:2025, l:"qE35JN1ogeI"},
@@ -297,399 +488,1164 @@
     {t:"MOONLIGHT SUNRISE", a:"트와이스 (TWICE)", y:2023, l:"cKlEE_EYuNM"},
     {t:"손오공 (Super)", a:"세븐틴 (SEVENTEEN)", y:2023, l:"-GQg25oP0S4"}
   ];
+/* ---------------- 공통 도구 ---------------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const clone = o => JSON.parse(JSON.stringify(o));
+let toastT;
+function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('on'),2600); }
+function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on', s.id===id)); window.scrollTo(0,0); }
+function ov(id,on){ $('#'+id).classList.toggle('on', !!on); }
+function closeOverlays(){ ['ovRules','ovOver','ovLeave'].forEach(i=>ov(i,false)); }
+const store = {
+  get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
+  set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} },
+  del(k){ try{ localStorage.removeItem(k); }catch(e){} }
+};
+const newPid = () => 'p' + Math.random().toString(36).slice(2,10);
+let myId = (()=>{ try{ let v=sessionStorage.getItem('ht_pid'); if(!v){ v=newPid(); sessionStorage.setItem('ht_pid',v); } return v; }catch(e){ return newPid(); } })();
 
-  const isFile = location.protocol === 'file:';
+const isFile = location.protocol === 'file:';
+const checkMode = new URLSearchParams(location.search).has('check');
 
-  // ─── 재생 시작 위치 ───
-  // MV 앞부분의 소속사 로고·효과음·대사를 건너뛰기 위해 기본 N초부터 재생
-  // 곡마다 다르게 하려면 곡 데이터에 s:초 를 추가 (예: {t:"...", a:"...", y:2020, l:"...", s:45})
-  // s:0 이면 처음부터 재생
-  const DEFAULT_START = 30;
-  function startOf(song) { return (typeof song.s === 'number') ? song.s : DEFAULT_START; }
-  // ─── 재생 시간 제한 ───
-  // 한 번 재생하면 PLAY_LIMIT초 뒤 자동으로 멈춤 (0이면 제한 없음)
-  const PLAY_LIMIT = 30;
-  function loadSong(song) {
-    const opts = { videoId: song.l, startSeconds: startOf(song) };
-    if (PLAY_LIMIT > 0) opts.endSeconds = startOf(song) + PLAY_LIMIT;
-    player.loadVideoById(opts);
+/* ---------------- 상태 ---------------- */
+let MODE = null;        // 'local' | 'online'
+let G = null;           // 게임 상태
+let ME = -1;            // 온라인에서 내 자리 번호
+let db=null, ROOM=null, roomRef=null, RD=null, PRES={}, srvOffset=0, selfOffline=false;
+let connWatched=false, pingTimer=null, presTimer=null;
+const STALE_MS=7000, PING_MS=2500, TAKEOVER_MS=20000, ROOM_KEY='ht_room';
+const serverNow = () => Date.now() + srvOffset;
+
+/* 재생 불가로 확인된 영상 (기기에 저장) */
+const badIds = new Set();
+const BAD_KEY = 'hitsterKpopBadIds';
+(function loadBad(){ try{ (JSON.parse(store.get(BAD_KEY)||'[]')).forEach(i=>badIds.add(i)); }catch(e){} })();
+function persistBad(){ store.set(BAD_KEY, JSON.stringify([...badIds])); }
+
+/* =========================================================
+   게임 규칙 (로컬·온라인 공통) — 순수 함수
+   ========================================================= */
+const WIN_CARDS=10, START_TOKENS=2, MAX_TOKENS=5;
+const COST_SKIP=1, COST_CHALLENGE=1, COST_GRAB=3;
+const SONG = i => initialSongData[i];
+
+function toArr(x){ if(!x) return []; if(Array.isArray(x)) return x.filter(v=>v!=null); return Object.keys(x).sort((a,b)=>a-b).map(k=>x[k]); }
+/* RTDB는 빈 배열·null을 지우므로 다시 채워 넣는다 */
+function norm(s){
+  s.players = toArr(s.players).map(p=>({ id:p.id, name:p.name, cards:toArr(p.cards), tokens:p.tokens|0 }));
+  s.deck = toArr(s.deck);
+  s.passed = toArr(s.passed);
+  if(s.pending==null) s.pending=null;
+  if(s.pos==null) s.pos=null;
+  if(s.cpos==null) s.cpos=null;
+  if(s.challenger==null) s.challenger=null;
+  if(s.winner==null) s.winner=null;
+  if(!s.last) s.last=null;
+  s.seq=s.seq|0; s.turn=s.turn|0; s.placer=s.placer|0;
+  if(s.claim===undefined) s.claim=null;
+  if(s.claim && typeof s.claim==='object') s.claim={ ti:s.claim.ti||'', ar:s.claim.ar||'' };
+  if(s.judge==null) s.judge=null;
+  return s;
+}
+function shuffled(){
+  const idx = initialSongData.map((s,i)=>i).filter(i=>!badIds.has(initialSongData[i].l));
+  for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [idx[i],idx[j]]=[idx[j],idx[i]]; }
+  return idx;
+}
+function newGame(list){
+  const deck = shuffled();
+  const players = list.map(p => ({ id:p.id, name:p.name, cards:[deck.pop()], tokens:START_TOKENS }));
+  return norm({
+    gameId: Math.random().toString(36).slice(2,9), seq:0,
+    players, deck, turn:0, placer:0, pending:deck.pop(),
+    phase:'place', pos:null, cpos:null, challenger:null, passed:[], claim:null, judge:null,
+    last:null, winner:null
+  });
+}
+/* ---------- 제목·가수 채점 (온라인 입력용) ---------- */
+/* 띄어쓰기·기호·대소문자를 모두 지우고 견줍니다 */
+const nk = v => String(v||'').toLowerCase().replace(/[^0-9a-z가-힣]/g,'');
+/* "손오공 (Super)" → 손오공 / Super / 손오공 (Super) 를 모두 정답으로 */
+function titleForms(t){
+  const out = new Set(); const add = v => { v=String(v||'').trim(); if(v) out.add(v); };
+  add(t);
+  [...String(t).matchAll(/[(（]([^)）]*)[)）]/g)].forEach(m => add(m[1]));
+  add(String(t).replace(/[(（][^)）]*[)）]/g,' '));
+  return [...out];
+}
+/* 가수는 위에 더해 "소유 & 정기고" 처럼 나뉜 이름도 하나만 맞히면 인정 */
+function artistForms(a){
+  const out = new Set(titleForms(a));
+  [...out].forEach(v => v.split(/\s*(?:&|,|\/|feat\.?|ft\.?|with|x)\s*/i).forEach(w => { w=w.trim(); if(w) out.add(w); }));
+  return [...out];
+}
+/* 한글을 소리대로 로마자로 바꿔서, 영어 제목을 한글로 적어도 알아듣게 한다 */
+const CHO = ['g','kk','n','d','tt','r','m','b','pp','s','ss','','j','jj','ch','k','t','p','h'];
+const JUNG = ['a','ae','ya','yae','eo','e','yeo','ye','o','wa','wae','oe','yo','u','wo','we','wi','yu','eu','ui','i'];
+/* 받침은 실제 소리대로 (ㅅ·ㅆ·ㅈ·ㅊ·ㅌ·ㅎ 받침은 모두 ㄷ 소리) */
+const JONG = ['','g','k','ks','n','nj','nh','d','l','lg','lm','lb','ls','lt','lp','lh','m','b','bs','t','t','ng','t','t','k','t','p','t'];
+function roman(str){
+  let out = '';
+  for(const ch of String(str||'')){
+    const c = ch.charCodeAt(0) - 0xAC00;
+    if(c >= 0 && c < 11172) out += CHO[Math.floor(c/588)] + JUNG[Math.floor((c%588)/28)] + JONG[c%28];
+    else out += ch;
   }
-  let tickTimer = null;     // 남은 시간 표시 + 시간 초과 시 정지
-  function startTick() {
-    clearInterval(tickTimer);
-    if (PLAY_LIMIT <= 0) return;
-    tickTimer = setInterval(() => {
-      if (!currentCard) { clearInterval(tickTimer); return; }
-      const end = startOf(currentCard.song) + PLAY_LIMIT;
-      const left = Math.ceil(end - player.getCurrentTime());
-      if (left <= 0) stopPlayback('⏱ 시간 끝! 연도를 맞혀 보세요');
-      else onAirText.innerText = '📻 NOW PLAYING... ' + left + '초';
-    }, 500);
+  return out;
+}
+const hasHangul = v => /[가-힣]/.test(String(v||''));
+/* 발음이 같으면 같은 값이 나오도록 자음 뼈대만 남긴다 (whiplash ↔ 위플래시) */
+function skel(v){
+  const kr = hasHangul(v);
+  let x = (kr ? roman(v) : String(v||'')).toLowerCase().replace(/[^a-z]/g,'');
+  if(kr){
+    x = x.replace(/ch/g,'k');                                   // ㅊ
+  } else {                                                      // 영어 철자 → 소리
+    x = x.replace(/tion/g,'sion').replace(/cian/g,'sian');      // -tion 은 '션'
+    x = x.replace(/ough/g,'o').replace(/augh/g,'o').replace(/igh/g,'i').replace(/gh/g,'g');
+    x = x.replace(/ph/g,'f').replace(/sh/g,'s').replace(/ch/g,'k').replace(/th/g,'t').replace(/wh/g,'w');
+    x = x.replace(/ck/g,'k').replace(/qu/g,'k').replace(/q/g,'k').replace(/x/g,'ks');
+    x = x.replace(/c(?=[eiy])/g,'s').replace(/c/g,'k');
+    x = x.replace(/g(?=[eiy])/g,'j');
+    x = x.replace(/r(?![aeiou])/g,'');                          // 받침 r 은 한글에 없다
   }
-  const checkMode = new URLSearchParams(location.search).has('check');
-
-  let songData = [...initialSongData];
-  let lives = 3;
-  let player = null;
-  let playerReady = false;
-  let currentCard = null;   // 지금 재생 중인 카드
-  let playTimer = null;     // 재생이 막혔는지 확인하는 타이머
-  const badIds = new Set(); // 이번 판에서 재생 실패한 영상 (+ 영구 저장된 것도 여기 합쳐짐)
-
-  const BAD_IDS_KEY = 'hitsterKpopBadIds';
-  function loadBadIds() {
-    try {
-      const saved = JSON.parse(localStorage.getItem(BAD_IDS_KEY) || '[]');
-      saved.forEach(id => badIds.add(id));
-    } catch (err) { /* 저장된 게 없거나 읽기 실패해도 그냥 진행 */ }
+  x = x.replace(/ng/g,'n').replace(/r/g,'l');
+  x = x.replace(/[fv]/g,'p').replace(/b/g,'p').replace(/d/g,'t').replace(/g/g,'k').replace(/[zj]/g,'s');
+  x = x.replace(/[aeiouywh]/g,'');
+  return x.replace(/(.)\1+/g,'$1');
+}
+/* 자음 뼈대만 보면 '케이크'가 'Cookie'로 통과하므로 첫 모음도 함께 본다.
+   영어 철자는 소리가 여러 갈래라 가능한 소리를 모두 열어 둔다. */
+const KR_V = { a:'A', ya:'A', wa:'A', ae:'E', e:'E', yae:'E', ye:'E', wae:'E', we:'E', oe:'E',
+  eo:'O', yeo:'O', wo:'O', o:'O', yo:'O', u:'U', yu:'U', wi:'I', i:'I', ui:'I' };
+const EN_V = { a:'AEO', e:'EOI', i:'IA', o:'OAU', u:'UOA', y:'IA',
+  oo:'UO', ou:'AOU', oa:'O', oi:'O', oy:'O', au:'OA', aw:'O', ai:'EA', ay:'EA',
+  ea:'IE', ee:'I', ei:'EAI', eu:'UO', ew:'U', ie:'IA', ue:'UI', ui:'UI', eo:'OEI' };
+/* 한글은 첫 소리 그대로 (받침 때문에 끼워 넣는 ㅡ 는 건너뛴다) */
+function firstVowel(v){
+  const str = String(v||'');
+  if(hasHangul(str)){
+    for(const ch of str){
+      const c = ch.charCodeAt(0) - 0xAC00;
+      if(c < 0 || c >= 11172) continue;
+      const j = JUNG[Math.floor((c%588)/28)];
+      if(j === 'eu') continue;                      // 받침 때문에 끼워 넣는 ㅡ
+      if(KR_V[j]) return KR_V[j];
+    }
+    return '';
   }
-  function persistBadIds() {
-    try { localStorage.setItem(BAD_IDS_KEY, JSON.stringify([...badIds])); } catch (err) { /* 저장 실패해도 게임엔 지장 없음 */ }
+  let x = str.toLowerCase().replace(/[^a-z]/g,'').replace(/qu/g,'q').replace(/wh/g,'w');
+  x = x.replace(/^h+/,'');                          // 앞의 h 는 자음
+  if(/^[yw][aeiou]/.test(x)) x = x.slice(1);        // 모음 앞의 y·w 도 자음
+  const m = x.match(/[aeiouy]+/);
+  if(!m) return '';
+  const g = m[0];
+  /* ditto 처럼 겹자음이 뒤따르는 i 는 짧은 소리(이)로만 본다 */
+  if(g === 'i' && /^(.)\1/.test(x.slice(m.index+1))) return 'I';
+  return EN_V[g] || EN_V[g.slice(0,2)] || EN_V[g[0]] || '';
+}
+/* 한쪽이라도 모음을 못 찾으면(TT, QWER 같은 경우) 자음만으로 본다 */
+function vowelOk(a, b){
+  const x = firstVowel(a), y = firstVowel(b);
+  if(!x || !y) return true;
+  return [...x].some(c => y.includes(c));
+}
+
+/* 통째로 맞아야 정답. 단, 한글↔영어는 소리로 견준다 */
+function matchOne(input, forms){
+  const x = nk(input); if(!x) return false;
+  if(forms.map(nk).some(v => v && v === x)) return true;
+  const xs = skel(input); if(!xs) return false;
+  const kr = hasHangul(input);
+  return forms.some(v => {
+    if(hasHangul(v) === kr || nk(v).length < 2) return false;
+    return skel(v) === xs && vowelOk(input, v);
+  });
+}
+
+/* 앞 카드보다 늦고 뒤 카드보다 빠르면 정답 (같은 해는 어느 쪽이든 정답) */
+function fits(years, pos, y){
+  if(pos>0 && years[pos-1] > y) return false;
+  if(pos<years.length && years[pos] < y) return false;
+  return true;
+}
+const yearsOf = p => p.cards.map(i => SONG(i).y);
+/* 도전할 수 있는 사람 = 차례인 사람이 아니고 토큰이 있는 사람 */
+const eligible = s => s.players.map((p,i)=>i).filter(i => i!==s.placer && s.players[i].tokens >= COST_CHALLENGE);
+
+function finish(s){
+  const song = SONG(s.pending);
+  const A = s.players[s.placer];
+  const okA = fits(yearsOf(A), s.pos, song.y);
+  let okC=false;
+  if(s.challenger!=null) okC = fits(yearsOf(s.players[s.challenger]), s.cpos, song.y);
+
+  let msg='', winner=null, at=null;
+  if(okA){
+    A.cards.splice(s.pos,0,s.pending); winner=s.placer; at=s.pos;
+    msg = `⭕ ${A.name} 정답!`;
+    if(s.challenger!=null){ s.players[s.challenger].tokens--; msg += ` ${s.players[s.challenger].name} 도전 실패 🪙-1`; }
+  } else if(s.challenger!=null && okC){
+    const C = s.players[s.challenger];
+    C.cards.splice(s.cpos,0,s.pending); winner=s.challenger; at=s.cpos;
+    msg = `🔥 ${A.name} 실패! ${C.name}이(가) 카드를 가져갑니다`;
+  } else {
+    msg = `❌ ${A.name} 실패 — 카드는 버립니다`;
+    if(s.challenger!=null){ s.players[s.challenger].tokens--; msg += ` (${s.players[s.challenger].name} 도전도 실패 🪙-1)`; }
   }
-  loadBadIds();
-
-  // 점검 모드용
-  let checking = false, checkDone = null, checkTimer = null, checkPoll = null;
-
-  const list = document.getElementById('sortable-list');
-  const onAirText = document.getElementById('on-air-text');
-  const addBtn = document.getElementById('add-card-btn');
-
-  // 파일을 직접 열면(file://) 유튜브가 재생을 거부함 (오류 153)
-  if (isFile) {
-    const w = document.getElementById('warn-banner');
-    w.style.display = 'block';
-    w.innerText = '⚠️ 파일을 직접 열면 유튜브 음악이 재생되지 않아요. 인터넷 주소(https://…)로 열어주세요.';
+  /* 제목·가수를 맞히면 카드를 틀리게 놓아도 토큰을 받는다 (카드 결과와 별개) */
+  s.judge = null;
+  if(s.claim === true){
+    /* 로컬: 소리 내어 말한 것을 다른 사람들이 인정해 준다 */
+    if(s.players.length < 2){ A.tokens = Math.min(MAX_TOKENS, A.tokens+1); msg += ` · 제목·가수 정답 🪙+1`; }
+    else s.judge = s.placer;
+  } else if(s.claim && typeof s.claim === 'object'){
+    /* 온라인: 적어 낸 답을 바로 채점 */
+    const okT = matchOne(s.claim.ti, titleForms(song.t));
+    const okAr = matchOne(s.claim.ar, artistForms(song.a));
+    if(okT && okAr){ A.tokens = Math.min(MAX_TOKENS, A.tokens+1); msg += ` · ${A.name} 제목·가수 정답 🪙+1`; }
+    else if(okT || okAr) msg += ` · ${A.name} ${okT?'제목':'가수'}만 정답 (둘 다 맞혀야 🪙+1)`;
+    else if(nk(s.claim.ti) || nk(s.claim.ar)) msg += ` · ${A.name} 제목·가수 오답`;
   }
 
-  // ─── 유튜브 플레이어 ───
-  // API 스크립트보다 먼저 정의해 두어야 안전함
-  window.onYouTubeIframeAPIReady = function () {
-    const vars = { autoplay: 0, controls: 0, disablekb: 1, playsinline: 1, rel: 0, fs: 0 };
-    if (!isFile) vars.origin = location.origin;
-    player = new YT.Player('player', {
-      width: '200',
-      height: '200',
-      playerVars: vars,
-      events: {
-        onReady: () => {
-          playerReady = true;
-          if (checkMode) document.getElementById('check-panel').style.display = 'block';
-        },
-        onStateChange: onPlayerState,
-        onError: onPlayerError
-      }
-    });
-  };
+  s.seq++;
+  s.last = { seq:s.seq, msg, song:s.pending, winner, at };
+  s.phase = 'show';
+  if(winner!=null && s.players[winner].cards.length >= WIN_CARDS){ s.phase='over'; s.winner=winner; }
+  return s;
+}
 
-  function btnOf(card) { return card.querySelector('.play-btn'); }
+function apply(s, a){
+  switch(a.type){
+    case 'place': {
+      if(s.phase!=='place') throw new Error('지금은 놓을 수 없어요');
+      if(a.by!==s.turn) throw new Error('지금은 내 차례가 아니에요');
+      s.pos = a.pos; s.claim = (a.claim === undefined) ? null : a.claim; s.placer = s.turn;
+      if(eligible(s).length){ s.phase='ask'; s.passed=[]; return s; }
+      return finish(s);
+    }
+    case 'pass': {
+      if(s.phase!=='ask') return s;
+      if(!s.passed.includes(a.by)) s.passed.push(a.by);
+      if(eligible(s).every(i => s.passed.includes(i))) return finish(s);
+      return s;
+    }
+    case 'passAll': {
+      if(s.phase!=='ask') return s;
+      return finish(s);
+    }
+    case 'challenge': {
+      if(s.phase!=='ask') throw new Error('지금은 도전할 수 없어요');
+      if(a.by===s.placer) throw new Error('자기 차례에는 도전할 수 없어요');
+      if(s.players[a.by].tokens < COST_CHALLENGE) throw new Error('토큰이 없어요');
+      s.challenger = a.by; s.phase='challenge';
+      return s;
+    }
+    case 'cplace': {
+      if(s.phase!=='challenge') throw new Error('지금은 놓을 수 없어요');
+      if(a.by!==s.challenger) throw new Error('도전한 사람만 놓을 수 있어요');
+      s.cpos = a.pos;
+      return finish(s);
+    }
+    case 'judge': {
+      if(s.phase!=='show' || s.judge==null) return s;
+      if(a.by!=null && a.by>=0 && a.by===s.judge) throw new Error('본인은 인정할 수 없어요');
+      const A2 = s.players[s.judge];
+      if(a.ok){ A2.tokens = Math.min(MAX_TOKENS, A2.tokens+1); if(s.last) s.last.msg += ` · ${A2.name} 제목·가수 정답 🪙+1`; }
+      else if(s.last) s.last.msg += ` · ${A2.name} 제목·가수는 못 맞혔어요`;
+      s.judge = null; s.claim = null; s.seq++;
+      return s;
+    }
+    case 'skip': {
+      if(s.phase!=='place' || a.by!==s.turn) throw new Error('지금은 넘길 수 없어요');
+      const me = s.players[s.turn];
+      if(me.tokens < COST_SKIP) throw new Error('토큰이 모자라요');
+      if(!s.deck.length) throw new Error('남은 곡이 없어요');
+      me.tokens -= COST_SKIP;
+      s.claim = null;
+      s.deck.push(s.pending);           // 넘긴 곡은 덱 뒤로
+      s.pending = s.deck.shift();
+      s.seq++;
+      return s;
+    }
+    case 'grab': {
+      if(s.phase!=='place' || a.by!==s.turn) throw new Error('지금은 받을 수 없어요');
+      const me = s.players[s.turn];
+      if(me.tokens < COST_GRAB) throw new Error('토큰이 모자라요');
+      me.tokens -= COST_GRAB;
+      s.claim = null; s.judge = null;
+      const song = SONG(s.pending);
+      let pos = yearsOf(me).findIndex(y => y > song.y);
+      if(pos < 0) pos = me.cards.length;
+      me.cards.splice(pos, 0, s.pending);
+      s.seq++;
+      s.last = { seq:s.seq, msg:`🎁 ${me.name}이(가) 토큰 ${COST_GRAB}개로 카드를 받았어요`, song:s.pending, winner:s.turn, at:pos };
+      s.phase = 'show';
+      if(me.cards.length >= WIN_CARDS){ s.phase='over'; s.winner=s.turn; }
+      return s;
+    }
+    /* 재생이 안 되는 영상은 값 없이 다른 곡으로 교체 */
+    case 'swap': {
+      if(s.phase!=='place' && s.phase!=='ask' && s.phase!=='challenge') return s;
+      if(s.phase!=='place') return s;
+      if(!s.deck.length) throw new Error('남은 곡이 없어요');
+      s.pending = s.deck.shift();
+      s.seq++;
+      return s;
+    }
+    case 'next': {
+      if(s.phase!=='show') return s;
+      s.turn = (s.turn+1) % s.players.length;
+      s.placer = s.turn; s.challenger=null; s.pos=null; s.cpos=null;
+      s.passed=[]; s.claim=null; s.judge=null; s.last=null;
+      if(!s.deck.length){ s.phase='over'; s.winner=null; return s; }
+      s.pending = s.deck.pop();
+      s.phase = 'place';
+      return s;
+    }
+    default: return s;
+  }
+}
 
-  function stopPlayback(msg) {
+/* =========================================================
+   유튜브 재생 (30초만 들려주고 자동으로 멈춤)
+   ========================================================= */
+const DEFAULT_START = 30;   // MV 앞부분 로고·대사를 건너뛰려고 30초 지점부터
+const PLAY_LIMIT    = 30;   // 한 번에 들려주는 길이(초). 0이면 제한 없음
+const startOf = sg => (typeof sg.s === 'number') ? sg.s : DEFAULT_START;
+
+let yt=null, ytReady=false, playingEl=null, playingIdx=null, playTimer=null, tickTimer=null;
+
+window.onYouTubeIframeAPIReady = function(){
+  const vars = { autoplay:0, controls:0, disablekb:1, playsinline:1, rel:0, fs:0 };
+  if(!isFile) vars.origin = location.origin;
+  yt = new YT.Player('ytPlayer', { width:'200', height:'200', playerVars:vars, events:{
+    onReady: ()=>{ ytReady=true; if(checkMode) $('#checkPanel').style.display='block'; },
+    onStateChange: onYtState, onError: onYtErr
+  }});
+};
+const btnOf = el => el.querySelector('.play-btn');
+function onAir(msg){ $('#onAir').textContent = msg; $('#onAirBox').classList.add('on'); }
+function stopPlay(msg){
+  clearTimeout(playTimer); clearInterval(tickTimer);
+  if(yt && ytReady) { try{ yt.stopVideo(); }catch(e){} }
+  if(playingEl && playingEl.isConnected) btnOf(playingEl).textContent = '🎧 재생';
+  playingEl=null; playingIdx=null;
+  if(msg) onAir(msg);
+}
+function loadSong(sg){
+  const o = { videoId: sg.l, startSeconds: startOf(sg) };
+  if(PLAY_LIMIT > 0) o.endSeconds = startOf(sg) + PLAY_LIMIT;
+  yt.loadVideoById(o);
+}
+/* 6초 안에 소리가 안 나오면 (주로 휴대폰 자동재생 차단) 다시 누르라고 안내 */
+function armTimer(el){
+  clearTimeout(playTimer);
+  playTimer = setTimeout(()=>{
+    if(playingEl !== el) return;
+    if(yt.getPlayerState() !== YT.PlayerState.PLAYING){
+      btnOf(el).textContent = '🎧 다시 재생';
+      onAir('👆 재생이 막혔어요. 버튼을 한 번 더 눌러주세요');
+    }
+  }, 6000);
+}
+function playCard(el){
+  if(!ytReady) return toast('유튜브를 준비하는 중이에요. 잠시만요');
+  if(playingEl === el){
+    const st = yt.getPlayerState();
+    if(st===YT.PlayerState.PLAYING || st===YT.PlayerState.BUFFERING){ stopPlay('🎵 재생 버튼을 눌러주세요'); return; }
+    yt.unMute(); yt.playVideo();
+    btnOf(el).textContent='✖ 정지'; onAir('⏳ 불러오는 중...'); armTimer(el); return;
+  }
+  if(playingEl && playingEl.isConnected) btnOf(playingEl).textContent='🎧 재생';
+  playingEl = el; playingIdx = el.songIdx;
+  yt.unMute(); yt.setVolume(100); loadSong(SONG(el.songIdx));
+  btnOf(el).textContent='✖ 정지'; onAir('⏳ 불러오는 중...'); armTimer(el);
+}
+function startTick(){
+  clearInterval(tickTimer);
+  if(PLAY_LIMIT<=0 || !playingEl) return;
+  const end = startOf(SONG(playingEl.songIdx)) + PLAY_LIMIT;
+  tickTimer = setInterval(()=>{
+    if(!playingEl){ clearInterval(tickTimer); return; }
+    const left = Math.ceil(end - yt.getCurrentTime());
+    if(left <= 0) stopPlay('⏱ 시간 끝! 연도를 맞혀 보세요');
+    else onAir('📻 NOW PLAYING... ' + left + '초');
+  }, 500);
+}
+function onYtState(e){
+  if(checking){ if(e.data===YT.PlayerState.PLAYING) finishCheck('ok'); return; }
+  if(!playingEl) return;
+  if(e.data === YT.PlayerState.PLAYING){
     clearTimeout(playTimer);
-    clearInterval(tickTimer);
-    if (player && playerReady) player.stopVideo();
-    if (currentCard) btnOf(currentCard).innerText = '🎧 재생';
-    currentCard = null;
-    onAirText.innerText = msg || '🎵 재생 버튼을 눌러주세요';
+    playingEl.dataset.heard = '1';
+    btnOf(playingEl).textContent = '✖ 정지';
+    onAir('📻 NOW PLAYING...');
+    startTick();
+  } else if(e.data === YT.PlayerState.ENDED){
+    stopPlay('⏱ 시간 끝! 연도를 맞혀 보세요');
   }
-
-  // 6초 안에 재생이 시작되지 않으면 (주로 휴대폰 자동재생 차단) 다시 누르라고 안내
-  function armTimer(card) {
-    clearTimeout(playTimer);
-    playTimer = setTimeout(() => {
-      if (currentCard !== card) return;
-      if (player.getPlayerState() !== YT.PlayerState.PLAYING) {
-        btnOf(card).innerText = '🎧 다시 재생';
-        onAirText.innerText = '👆 재생이 막혔어요. 버튼을 한 번 더 눌러주세요';
-      }
-    }, 6000);
+}
+function onYtErr(e){
+  if(checking){ finishCheck('err', e.data); return; }
+  const el = playingEl, idx = playingIdx;
+  stopPlay();
+  if(!el) return;
+  if(e.data === 153){ onAir('🚫 유튜브 설정 오류(153): 인터넷 주소(https://…)로 열어주세요'); return; }
+  /* 오류 5는 일시적인 경우가 많아 같은 곡으로 한 번만 더 시도 */
+  if(e.data === 5 && el.dataset.retried !== '1' && el.isConnected){
+    el.dataset.retried='1'; playingEl=el; playingIdx=idx;
+    yt.unMute(); yt.setVolume(100); loadSong(SONG(idx));
+    btnOf(el).textContent='✖ 정지'; onAir('⏳ 다시 불러오는 중...'); armTimer(el); return;
   }
-
-  function handlePlay(card) {
-    if (!playerReady) return alert("유튜브 플레이어가 아직 준비되지 않았습니다. 잠시만 기다려주세요.");
-    const btn = btnOf(card);
-
-    // 같은 카드를 다시 누른 경우
-    if (currentCard === card) {
-      const st = player.getPlayerState();
-      if (st === YT.PlayerState.PLAYING || st === YT.PlayerState.BUFFERING) {
-        stopPlayback();
-        return;
-      }
-      // 불러왔는데 막혀 있던 경우 → 이번 터치로 다시 재생 시도
-      player.unMute();
-      player.playVideo();
-      btn.innerText = '✖ 정지';
-      onAirText.innerText = '⏳ 불러오는 중...';
-      armTimer(card);
-      return;
-    }
-
-    if (currentCard) btnOf(currentCard).innerText = '🎧 재생';
-    currentCard = card;
-    player.unMute();
-    player.setVolume(100);
-    loadSong(card.song);
-    btn.innerText = '✖ 정지';
-    onAirText.innerText = '⏳ 불러오는 중...';
-    armTimer(card);
+  badIds.add(SONG(idx).l); persistBad();
+  console.warn('재생 불가:', SONG(idx).t, SONG(idx).l, '오류', e.data);
+  if(G && G.pending===idx && G.phase==='place' && iAct(G)){
+    onAir('🔁 재생이 안 되는 곡이라 다른 곡으로 바꿨어요');
+    send({ type:'swap' });
+  } else {
+    onAir('🚫 이 곡은 재생할 수 없어요');
   }
+}
 
-  function onPlayerState(e) {
-    if (checking) {
-      if (e.data === YT.PlayerState.PLAYING) finishCheck('ok');
-      return;
-    }
-    if (!currentCard) return;
-    if (e.data === YT.PlayerState.PLAYING) {
-      clearTimeout(playTimer);
-      currentCard.dataset.heard = '1';
-      btnOf(currentCard).innerText = '✖ 정지';
-      onAirText.innerText = '📻 NOW PLAYING...';
-      startTick();
-    } else if (e.data === YT.PlayerState.ENDED) {
-      stopPlayback(PLAY_LIMIT > 0 ? '⏱ 시간 끝! 연도를 맞혀 보세요' : undefined);
-    }
-  }
+/* =========================================================
+   게임 화면
+   ========================================================= */
+let pendEl = null, nextTimer = null;
+/* 제목·가수 맞히기 — 로컬은 '말했어요' 선언, 온라인은 직접 입력 */
+let sayOn = false, ansT = '', ansA = '', ansFor = null;
+function resetAnswer(){ sayOn=false; ansT=''; ansA=''; }
 
-  function onPlayerError(e) {
-    if (checking) { finishCheck('err', e.data); return; }
+const viewOf = s => (s.phase==='challenge') ? s.challenger
+                  : (s.phase==='show' && s.last && s.last.winner!=null) ? s.last.winner
+                  : s.placer;
+function iAct(s){
+  if(s.phase==='place')     return MODE==='local' ? true : ME===s.turn;
+  if(s.phase==='challenge') return MODE==='local' ? true : ME===s.challenger;
+  return false;
+}
+function makeCard(idx, revealed){
+  const sg = SONG(idx);
+  const el = document.createElement('div');
+  el.className = 'card' + (revealed ? ' locked revealed' : '');
+  el.innerHTML = '<div class="drag-handle"></div><button class="play-btn">🎧 재생</button>'
+               + '<span class="info-text"></span><span class="year-tag"></span>';
+  el.songIdx = idx;
+  el.querySelector('.info-text').textContent = revealed ? (sg.a + ' - ' + sg.t) : '? ? ? - ? ? ?';
+  el.querySelector('.year-tag').textContent = sg.y;
+  btnOf(el).onclick = ev => { ev.stopPropagation(); playCard(el); };
+  return el;
+}
+function renderTimeline(){
+  const s = G, v = viewOf(s), p = s.players[v], tl = $('#timeline');
+  const keepIdx = playingIdx, keepHeard = pendEl && pendEl.dataset.heard === '1';
+  tl.innerHTML = ''; pendEl = null;
 
-    const card = currentCard;
-    stopPlayback();
-    if (!card) return;
-
-    if (e.data === 153) {
-      onAirText.innerText = '🚫 유튜브 설정 오류(153): 인터넷 주소로 열어주세요';
-      return;
-    }
-
-    // 오류코드 5는 보통 일시적인 오류라, 같은 곡으로 한 번만 재시도해봄
-    if (e.data === 5 && card.dataset.retried !== '1') {
-      card.dataset.retried = '1';
-      currentCard = card;
-      player.unMute();
-      player.setVolume(100);
-      loadSong(card.song);
-      btnOf(card).innerText = '✖ 정지';
-      onAirText.innerText = '⏳ 다시 불러오는 중...';
-      armTimer(card);
-      return;
-    }
-
-    badIds.add(card.song.l);
-    persistBadIds();
-    console.warn('재생 불가:', card.song.t, '-', card.song.a, card.song.l, '오류코드', e.data);
-
-    if (card.classList.contains('revealed')) {
-      onAirText.innerText = '🚫 이 곡은 재생할 수 없어요';
-      return;
-    }
-
-    // 아직 정답 공개 전이면 다른 곡으로 조용히 교체 (라이프 손해 없음)
-    const next = drawSong();
-    if (!next) {
-      onAirText.innerText = '🚫 재생 가능한 곡이 더 없어요';
-      return;
-    }
-    setCardSong(card, next);
-    onAirText.innerText = '🔁 재생 안 되는 곡이라 다른 곡으로 바꿨어요. 다시 눌러주세요!';
-  }
-
-  // ─── 게임 ───
-  new Sortable(list, { 
-    animation: 250, 
-    handle: '.drag-handle'
+  p.cards.forEach((idx, i) => {
+    const el = makeCard(idx, true);
+    if(s.phase==='show' && s.last && s.last.winner===v && s.last.at===i)
+      el.classList.add(s.last.winner===s.placer ? 'correct' : 'taken');
+    tl.appendChild(el);
   });
 
-  function drawSong() {
-    while (songData.length) {
-      const s = songData.splice(Math.floor(Math.random() * songData.length), 1)[0];
-      if (!badIds.has(s.l)) return s;
+  if(s.pending!=null && (s.phase==='place' || s.phase==='ask' || s.phase==='challenge')){
+    pendEl = makeCard(s.pending, false);
+    if(!iAct(s)) pendEl.classList.add('nodrag');
+    if(keepHeard && keepIdx === s.pending) pendEl.dataset.heard = '1';
+    tl.appendChild(pendEl);
+  } else if(s.phase==='show' && s.last && s.last.winner==null){
+    const el = makeCard(s.last.song, true);
+    el.classList.add('wrong');
+    tl.appendChild(el);
+  }
+
+  /* 재생 중이던 곡이 화면에 그대로 있으면 이어서 재생 상태로 표시 */
+  if(playingIdx != null){
+    const el = [...tl.children].find(c => c.songIdx === playingIdx);
+    if(el){ playingEl = el; btnOf(el).textContent = '✖ 정지'; if(el===pendEl) el.dataset.heard='1'; }
+    else stopPlay();
+  }
+}
+function renderBoard(){
+  const s = G, box = $('#board');
+  box.innerHTML = '';
+  s.players.forEach((p,i) => {
+    const c = document.createElement('div');
+    c.className = 'chip' + (i===s.turn ? ' active' : '');
+    const dot = (MODE==='online') ? `<span class="dot ${presCls(p.id)}" data-pid="${esc(p.id)}"></span>` : '';
+    c.innerHTML = dot + `${esc(p.name)} ${p.cards.length}/${WIN_CARDS}장 🪙${p.tokens}`;
+    box.appendChild(c);
+  });
+  const who = s.players[s.turn], v = s.players[viewOf(s)];
+  if(s.phase==='challenge'){
+    $('#turnBanner').textContent = `🔥 ${s.players[s.challenger].name} 도전 중`;
+    $('#turnSub').textContent = `${s.players[s.challenger].name}의 타임라인이에요. 알맞다고 생각하는 자리에 놓으세요.`;
+  } else if(s.phase==='show'){
+    $('#turnBanner').textContent = '결과';
+    $('#turnSub').textContent = `${v.name}의 타임라인`;
+  } else {
+    $('#turnBanner').textContent = `🎤 ${who.name} 차례`;
+    $('#turnSub').textContent = `먼저 ${WIN_CARDS}장을 맞게 놓으면 승리 · 틀리면 카드만 버려요`;
+  }
+}
+function renderAsk(){
+  const s = G, bar = $('#askBar');
+  bar.innerHTML = '';
+  if(s.phase !== 'ask') return;
+  const t = document.createElement('div');
+  t.className = 't';
+  t.textContent = `🔥 도전할 사람 있나요? 토큰 ${COST_CHALLENGE}개를 내고, 맞히면 카드를 가져갑니다`;
+  bar.appendChild(t);
+  const elig = eligible(s);
+  const mk = (label, cls, fn) => { const b=document.createElement('button'); if(cls) b.className=cls; b.textContent=label; b.onclick=fn; bar.appendChild(b); };
+  if(MODE === 'local'){
+    elig.forEach(i => mk(s.players[i].name + ' 도전!', '', () => send({ type:'challenge', by:i })));
+    mk('아무도 안 함', 'pass', () => send({ type:'passAll' }));
+  } else if(elig.includes(ME) && !s.passed.includes(ME)){
+    mk('🔥 도전!', '', () => send({ type:'challenge' }));
+    mk('안 할래요', 'pass', () => send({ type:'pass' }));
+  } else {
+    const w = document.createElement('div');
+    w.className = 'note';
+    w.textContent = '다른 사람들의 결정을 기다리는 중…';
+    bar.appendChild(w);
+  }
+}
+function renderActs(){
+  const s = G, box = $('#acts');
+  box.innerHTML = '';
+  const add = (label, fn, cls, dis) => {
+    const b = document.createElement('button');
+    b.className = 'btn ' + (cls||''); b.textContent = label; b.disabled = !!dis; b.onclick = fn;
+    box.appendChild(b); return b;
+  };
+  const wait = txt => { const w=document.createElement('span'); w.className='note'; w.textContent=txt; box.appendChild(w); };
+
+  if(s.phase === 'place'){
+    if(iAct(s)){
+      const me = s.players[s.turn];
+      if(MODE === 'online') box.appendChild(answerInputs());
+      add('✅ 여기 놓기', doPlace);
+      if(MODE === 'local')
+        add(sayOn ? '🎤 말했어요 ✔' : '🎤 제목·가수 말하기', () => { sayOn = !sayOn; renderActs(); }, sayOn ? 'on small' : 'small');
+      add(`⏭ 넘기기 🪙${COST_SKIP}`, () => send({ type:'skip' }), 'ghost small', me.tokens < COST_SKIP);
+      add(`🎁 받기 🪙${COST_GRAB}`, () => send({ type:'grab' }), 'ghost small', me.tokens < COST_GRAB);
+    } else wait(s.players[s.turn].name + '님이 카드를 놓는 중…');
+  } else if(s.phase === 'show' && s.judge != null){
+    const who = s.players[s.judge].name;
+    if(MODE === 'local' || ME !== s.judge){
+      const w = document.createElement('div');
+      w.className = 'judge-q';
+      w.textContent = `🎤 ${who}님이 제목과 가수를 말했어요 — 맞았나요?`;
+      box.appendChild(w);
+      add('⭕ 맞았어요 🪙+1', () => send({ type:'judge', ok:true,  by:(MODE==='local'? -1 : ME) }), 'small');
+      add('❌ 아니에요',      () => send({ type:'judge', ok:false, by:(MODE==='local'? -1 : ME) }), 'ghost small');
+    } else wait('다른 사람들이 인정해 주기를 기다리는 중…');
+  } else if(s.phase === 'challenge'){
+    if(iAct(s)) add('🔥 도전 확정', doCPlace);
+    else wait(s.players[s.challenger].name + '님이 자리를 고르는 중…');
+  } else if(s.phase === 'over'){
+    if(MODE === 'local' || (RD && RD.host === myId)) add('🔄 다시 하기', restartGame);
+  }
+}
+/* 온라인: 노래를 들으면서 제목·가수를 적어 둔다 (정답은 공개 때 채점) */
+function answerInputs(){
+  const box = document.createElement('div');
+  box.className = 'answer';
+  box.innerHTML = `<div class="note">🎤 제목과 가수를 둘 다 맞히면 🪙+1 (몰라도 그냥 두면 돼요)</div>`;
+  const row = document.createElement('div'); row.className = 'row';
+  const mk = (ph, val, set) => {
+    const i = document.createElement('input');
+    i.type='text'; i.maxLength=40; i.placeholder=ph; i.value=val; i.autocomplete='off';
+    i.style.flex='1'; i.style.minWidth='0';
+    i.addEventListener('input', () => set(i.value));
+    row.appendChild(i);
+  };
+  mk('노래 제목', ansT, v => { ansT = v; });
+  mk('가수', ansA, v => { ansA = v; });
+  box.appendChild(row);
+  return box;
+}
+
+function renderGame(){
+  if(!G) return;
+  const key = G.gameId + ':' + G.turn + ':' + G.pending;
+  if(ansFor !== key){ ansFor = key; resetAnswer(); }
+  renderBoard(); renderAsk(); renderTimeline(); renderActs();
+  $('#gMode').textContent = (MODE === 'online') ? ('방 ' + ROOM) : '로컬';
+  if(G.phase === 'show' && G.last) onAir(G.last.msg + ' — ' + SONG(G.last.song).a + ' · ' + SONG(G.last.song).t + ' (' + SONG(G.last.song).y + ')');
+  else if(G.phase === 'place' && iAct(G)) onAir('🎧 재생을 누른 뒤, 카드를 알맞은 자리로 옮기세요');
+  scheduleNext();
+  if(G.phase === 'over') showOver(); else ov('ovOver', false);
+}
+function scheduleNext(){
+  clearTimeout(nextTimer);
+  if(!G || G.phase !== 'show' || G.judge != null) return;
+  if(!(MODE === 'local' || ME === G.turn)) return;   // 한 사람만 다음 차례를 넘긴다
+  nextTimer = setTimeout(() => send({ type:'next' }), 2800);
+}
+function posOfPending(){ return [...$('#timeline').children].indexOf(pendEl); }
+function doPlace(){
+  if(!pendEl) return;
+  if(pendEl.dataset.heard !== '1') return toast('🎧 아직 이 곡을 못 들었어요. 재생을 먼저 눌러주세요');
+  const claim = (MODE === 'local')
+    ? (sayOn ? true : null)
+    : ((ansT.trim() || ansA.trim()) ? { ti: ansT.trim().slice(0,40), ar: ansA.trim().slice(0,40) } : null);
+  send({ type:'place', pos: posOfPending(), claim });
+  resetAnswer();
+}
+function doCPlace(){ if(pendEl) send({ type:'cplace', pos: posOfPending() }); }
+
+function send(a){
+  const act = Object.assign({}, a);
+  if(act.by == null) act.by = (MODE === 'local') ? (G.phase === 'challenge' ? G.challenger : G.turn) : ME;
+  if(MODE === 'local'){
+    let ns; try{ ns = apply(clone(G), act); }catch(e){ return toast(e.message); }
+    G = ns; renderGame();
+  } else {
+    if(!roomRef) return;
+    let err = null;
+    roomRef.child('state').transaction(cur => {
+      if(cur === null) return cur;
+      try{ err = null; return apply(norm(cur), act); }catch(e){ err = e; return; }
+    }, e => { if(err) toast(err.message); else if(e) toast('연결 문제: ' + e.message); }, false);
+  }
+}
+function showOver(){
+  const s = G;
+  const ranked = s.players.map((p,i)=>({p,i})).sort((a,b)=> b.p.cards.length - a.p.cards.length || b.p.tokens - a.p.tokens);
+  const title = (s.winner != null) ? `🏆 ${esc(s.players[s.winner].name)} 승리!` : '게임 끝 — 남은 곡이 없어요';
+  $('#overBody').innerHTML = `<h2>${title}</h2>`
+    + ranked.map((o,r)=>`<p style="margin:.3rem 0">${r+1}위 &nbsp; <b>${esc(o.p.name)}</b> — ${o.p.cards.length}장 · 🪙${o.p.tokens}</p>`).join('')
+    + `<div style="margin-top:18px"><button class="btn" id="ovClose">닫기</button></div>`;
+  $('#ovClose').onclick = () => ov('ovOver', false);
+  ov('ovOver', true);
+}
+function restartGame(){
+  if(MODE === 'local'){ G = newGame(G.players.map(p=>({id:p.id,name:p.name}))); renderGame(); }
+  else if(RD && RD.host === myId){ roomRef.update({ state: newGame(G.players.map(p=>({id:p.id,name:p.name}))) }); }
+}
+
+/* =========================================================
+   로컬 게임 (기기 하나로 번갈아)
+   ========================================================= */
+let lcN = 2;
+function buildLocalSetup(){
+  const box = $('#lcCount'); box.innerHTML = '';
+  for(let n=1; n<=6; n++){
+    const b = document.createElement('button');
+    b.textContent = n;
+    if(n === lcN) b.className = 'sel';
+    b.onclick = () => { lcN = n; buildLocalSetup(); };
+    box.appendChild(b);
+  }
+  const rows = $('#lcNames'); const old = [...rows.querySelectorAll('input')].map(i=>i.value);
+  rows.innerHTML = '';
+  for(let i=0; i<lcN; i++){
+    const inp = document.createElement('input');
+    inp.maxLength = 10;
+    inp.placeholder = (lcN === 1) ? '내 이름 (비우면 "나")' : `${i+1}번 이름 (비우면 플레이어 ${i+1})`;
+    inp.value = old[i] || '';
+    rows.appendChild(inp);
+  }
+}
+$('#lcStart').onclick = () => {
+  const names = [...$('#lcNames').querySelectorAll('input')].map((inp,i) =>
+    inp.value.trim() || (lcN === 1 ? '나' : '플레이어 ' + (i+1)));
+  MODE = 'local'; ME = -1; ROOM = null; RD = null;
+  G = newGame(names.map((n,i) => ({ id:'L'+i, name:n })));
+  $('#chatBtn').classList.remove('on');
+  closeOverlays(); show('game'); renderGame();
+};
+
+/* =========================================================
+   온라인 게임 (Firebase Realtime Database)
+   hitster/rooms/{코드} = { host, status, players:{id:{name,t,online}}, state }
+   hitster/pres/{코드}/{id}, hitster/chat/{코드}
+   ========================================================= */
+function fbReady(){
+  if(db) return true;
+  if(!firebaseConfig.apiKey || !firebaseConfig.databaseURL || typeof firebase === 'undefined') return false;
+  try{ firebase.initializeApp(firebaseConfig); db = firebase.database(); return true; }
+  catch(e){ console.error(e); return false; }
+}
+const TS = () => firebase.database.ServerValue.TIMESTAMP;
+function genCode(){ const A='ABCDEFGHJKLMNPQRSTUVWXYZ'; let c=''; for(let i=0;i<4;i++) c+=A[Math.floor(Math.random()*A.length)]; return c; }
+function myName(){ const p = G && ME>=0 && G.players[ME]; return (p && p.name) || (store.get('ht_name') || '손님'); }
+function getName(){
+  const v = $('#onName').value.trim();
+  if(!v){ toast('이름을 입력해 주세요'); $('#onName').focus(); return null; }
+  store.set('ht_name', v); return v;
+}
+$('#onCreate').onclick = async () => {
+  if(!fbReady()) return toast('firebaseConfig를 먼저 채워 주세요');
+  const name = getName(); if(!name) return;
+  try{
+    let code = genCode();
+    for(let k=0;k<6;k++){ const sn = await db.ref(P_ROOM+'/'+code).get(); if(!sn.exists()) break; code = genCode(); }
+    await db.ref(P_ROOM+'/'+code).set({ host:myId, status:'lobby', created:TS(), players:{ [myId]:{ name, t:Date.now(), online:true } } });
+    enterRoom(code);
+  }catch(e){ toast('방을 만들지 못했어요: ' + e.message); }
+};
+$('#onJoin').onclick = async () => {
+  if(!fbReady()) return toast('firebaseConfig를 먼저 채워 주세요');
+  const name = getName(); if(!name) return;
+  const code = $('#onCode').value.trim().toUpperCase();
+  if(code.length !== 4) return toast('4글자 방 코드를 입력해 주세요');
+  try{
+    const sn = await db.ref(P_ROOM+'/'+code).get();
+    if(!sn.exists()) return toast('그런 방이 없어요. 코드를 확인해 주세요');
+    const r = sn.val(), ps = r.players || {};
+    if(!ps[myId]){
+      if(r.status !== 'lobby') return toast('이미 게임이 시작된 방이에요');
+      if(Object.keys(ps).length >= 6) return toast('방이 가득 찼어요 (최대 6명)');
+      await db.ref(`${P_ROOM}/${code}/players/${myId}`).set({ name, t:Date.now(), online:true });
     }
-    return null;
-  }
-
-  function setCardSong(card, song) {
-    card.song = song;
-    card.dataset.year = song.y;
-    card.dataset.heard = '0'; // 이 곡으로는 아직 (재)생 성공한 적 없음
-    card.dataset.retried = '0'; // 이 곡으로는 아직 재시도 안 함
-    card.querySelector('.year-tag').innerText = song.y;
-  }
-
-  function updateUI() {
-    document.getElementById('life-container').innerText = `LIVES: ${'❤️'.repeat(Math.max(0, lives))}`;
-    if (lives <= 0) document.getElementById('game-over-screen').style.display = 'flex';
-    addBtn.disabled = !!document.querySelector('.card:not(.revealed)');
-  }
-
-  function addCard() {
-    if (document.querySelector('.card:not(.revealed)')) return alert("정답을 먼저 확인해주세요!");
-    const song = drawSong();
-    if (!song) return alert("모든 카드를 사용했습니다!");
-
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.innerHTML = `
-      <div class="drag-handle"></div>
-      <button class="play-btn">🎧 재생</button>
-      <span class="info-text">? ? ? - ? ? ?</span>
-      <span class="year-tag"></span>
-    `;
-    setCardSong(card, song);
-
-    btnOf(card).onclick = (e) => {
-      e.stopPropagation();
-      handlePlay(card);
-    };
-
-    card.onclick = () => checkAnswer(card);
-    list.appendChild(card);
-    updateUI();
-  }
-
-  function checkAnswer(card, force) {
-    if (card.classList.contains('revealed') || lives <= 0) return;
-    if (!force && card.dataset.heard !== '1') {
-      onAirText.innerText = '🎧 아직 이 곡을 못 들었어요! 재생 버튼을 눌러 듣고 나서 카드를 눌러주세요';
-      return;
+    enterRoom(code);
+  }catch(e){ toast('들어가지 못했어요: ' + e.message); }
+};
+function enterRoom(code){
+  MODE='online'; ROOM=code; roomRef=db.ref(P_ROOM+'/'+code); G=null; ME=-1;
+  const on = roomRef.child('players/'+myId+'/online');
+  on.set(true); on.onDisconnect().set(false);
+  store.set(ROOM_KEY, JSON.stringify({ code, id:myId, t:Date.now() }));
+  watchConnection(); startPresence(code); attachChat(code);
+  try{ history.replaceState(null, '', '?room=' + code); }catch(e){}
+  roomRef.on('value', sn => onRoom(sn.val()));
+}
+function onRoom(r){
+  if(MODE !== 'online') return;
+  if(!r){ toast('방이 사라졌어요'); leaveRoom(); return; }
+  RD = r;
+  if((!r.players || !r.players[myId]) && r.status === 'lobby'){ toast('방에서 나왔어요'); leaveRoom(); return; }
+  if(r.status !== 'playing' || !r.state){ G=null; closeOverlays(); show('lobby'); renderLobby(); return; }
+  const s = norm(clone(r.state));
+  const fresh = !G || G.gameId !== s.gameId;
+  G = s; ME = s.players.findIndex(p => p.id === myId);
+  if(fresh){ closeOverlays(); stopPlay(); }
+  show('game'); renderGame();
+}
+/* ---------- 접속 감시 ---------- */
+function watchConnection(){
+  if(connWatched || !db) return; connWatched = true;
+  db.ref('.info/serverTimeOffset').on('value', sn => { srvOffset = sn.val() || 0; });
+  db.ref('.info/connected').on('value', sn => {
+    selfOffline = sn.val() !== true;
+    if(!selfOffline && ROOM){
+      const r = db.ref(`${P_PRES}/${ROOM}/${myId}`);
+      r.onDisconnect().update({ connected:false });
+      r.update({ connected:true, lastSeen:TS() });
+      const o = db.ref(`${P_ROOM}/${ROOM}/players/${myId}/online`);
+      o.onDisconnect().set(false); o.set(true);
     }
-    const all = Array.from(document.querySelectorAll('.card'));
-    const idx = all.indexOf(card);
-    const yr = parseInt(card.dataset.year);
-    const years = all.map(c => parseInt(c.dataset.year));
-
-    let ok = true;
-    for (let i = 0; i < idx; i++) if (years[i] > yr) ok = false;
-    for (let i = idx + 1; i < years.length; i++) if (years[i] < yr) ok = false;
-
-    card.classList.add('revealed');
-    card.querySelector('.info-text').innerText = `${card.song.a} - ${card.song.t}`;
-
-    if (ok) {
-      card.classList.add('correct');
-    } else {
-      card.classList.add('wrong');
-      lives--;
-      updateUI();
-      setTimeout(() => {
-        if (currentCard === card) stopPlayback();
-        card.remove();
-        updateUI();
-      }, 1200);
-    }
-    updateUI();
+    $('#connBar').classList.toggle('on', MODE==='online' && selfOffline);
+  });
+}
+/* 2.5초마다 살아 있다고 알리고, 다른 사람 상태는 점 색으로 보여 준다 */
+function startPresence(code){
+  const r = db.ref(`${P_PRES}/${code}/${myId}`);
+  r.set({ name: store.get('ht_name') || '손님', connected:true, lastSeen:TS(), pingMs:null });
+  r.onDisconnect().update({ connected:false });
+  db.ref(`${P_PRES}/${code}`).on('value', sn => { PRES = sn.val() || {}; paintPresence(); });
+  clearInterval(pingTimer);
+  pingTimer = setInterval(() => {
+    if(MODE!=='online' || !ROOM) return;
+    const t0 = Date.now();
+    r.update({ lastSeen:TS() }).then(()=> r.update({ pingMs: Date.now()-t0, connected:true })).catch(()=>{});
+  }, PING_MS);
+  clearInterval(presTimer);
+  presTimer = setInterval(paintPresence, 1000);
+}
+function stopPresence(){
+  clearInterval(pingTimer); pingTimer=null;
+  clearInterval(presTimer); presTimer=null;
+  if(ROOM && db) db.ref(`${P_PRES}/${ROOM}`).off();
+  PRES = {};
+}
+function presCls(id){
+  const m = PRES[id];
+  if(!m) return 'off';
+  if(m.connected === false) return 'stale';
+  if(m.lastSeen && serverNow() - m.lastSeen > STALE_MS) return 'stale';
+  return m.pingMs == null ? 'mid' : (m.pingMs < 150 ? 'good' : m.pingMs < 400 ? 'mid' : 'bad');
+}
+/* 화면을 통째로 다시 그리면 깜빡이니 점만 살짝 고친다 */
+function paintPresence(){
+  $('#connBar').classList.toggle('on', MODE==='online' && selfOffline);
+  if(MODE !== 'online') return;
+  document.querySelectorAll('.dot[data-pid]').forEach(el => { el.className = 'dot ' + presCls(el.dataset.pid); });
+}
+/* 방장이 오래 사라지면 남은 사람 중 가장 먼저 들어온 사람에게 넘긴다 */
+function maybeMoveHost(){
+  if(!RD || !roomRef || RD.status !== 'lobby') return;
+  const h = PRES[RD.host];
+  if(h && h.lastSeen && serverNow() - h.lastSeen < TAKEOVER_MS) return;
+  const alive = Object.entries(RD.players||{}).sort((a,b)=>a[1].t-b[1].t).map(([id])=>id)
+    .filter(id => { const m = PRES[id]; return m && m.connected !== false && serverNow()-(m.lastSeen||0) < STALE_MS; });
+  if(alive.length && alive[0] === myId) roomRef.child('host').set(myId);
+}
+function renderLobby(){
+  const r = RD, ps = Object.entries(r.players||{}).sort((a,b)=>a[1].t-b[1].t);
+  const isHost = r.host === myId;
+  maybeMoveHost();
+  const link = location.origin + location.pathname + '?room=' + ROOM;
+  $('#lobbyBody').innerHTML = `
+    <h2>대기실</h2>
+    <p class="note" style="margin:0">방 코드</p>
+    <div class="code">${ROOM}</div>
+    <div class="row"><button class="btn ghost small" id="lbCopy">초대 링크 복사</button></div>
+    <ul class="plist">${ps.map(([id,p])=>`<li><span class="dot ${presCls(id)}" data-pid="${esc(id)}"></span>${esc(p.name)}${id===r.host?' <span class="tag">방장</span>':''}${id===myId?' <span class="tag">나</span>':''}</li>`).join('')}</ul>
+    <p class="note">${ps.length}/6명 · 2명 이상이면 시작할 수 있어요.</p>
+    ${isHost ? `<button class="btn big" id="lbStart" style="width:100%" ${ps.length<2?'disabled':''}>게임 시작</button>`
+             : '<p class="note">방장이 시작하기를 기다리는 중…</p>'}`;
+  $('#lbCopy').onclick = () => { navigator.clipboard ? navigator.clipboard.writeText(link).then(()=>toast('링크를 복사했어요'), ()=>toast(link)) : toast(link); };
+  const st = $('#lbStart');
+  if(st) st.onclick = () => {
+    const list = ps.slice(0,6).map(([id,p]) => ({ id, name:p.name }));
+    if(list.length < 2) return toast('2명 이상 있어야 해요');
+    roomRef.update({ status:'playing', state:newGame(list) });
+  };
+}
+function leaveRoom(){
+  const code = ROOM, ref = roomRef, data = RD;
+  detachChat(); stopPresence(); store.del(ROOM_KEY);
+  clearTimeout(nextTimer); stopPlay();
+  if(code && db){
+    const pr = db.ref(`${P_PRES}/${code}/${myId}`);
+    pr.onDisconnect().cancel(); pr.remove().catch(()=>{});
   }
-
-  addBtn.onclick = addCard;
-  document.getElementById('reveal-all-btn').onclick = () => document.querySelectorAll('.card').forEach(c => checkAnswer(c, true));
-  document.getElementById('reset-btn').onclick = () => location.reload();
-  document.getElementById('retry-btn').onclick = () => location.reload();
-  updateUI();
-
-  // ─── 곡 점검 모드: 주소 끝에 ?check 를 붙여서 열면 나타남 ───
-  function errText(c) {
-    if (c === 100) return '영상 없음/비공개 (100)';
-    if (c === 101 || c === 150) return '퍼가기(임베드) 금지 (150)';
-    if (c === 2) return '잘못된 영상 ID (2)';
-    if (c === 5) return '재생기 오류 (5)';
-    if (c === 153) return '유튜브 설정 오류 (153) - 파일로 열었는지 확인';
-    return '오류 ' + c;
+  if(ref){
+    ref.off();
+    const online = db ? db.ref(`${P_ROOM}/${code}/players/${myId}/online`) : null;
+    if(online) online.onDisconnect().cancel();
+    const others = Object.keys((data && data.players) || {}).filter(id => id !== myId);
+    const lastOne = data && others.every(id => data.players[id].online === false);
+    if(data && (!others.length || lastOne)){
+      ref.remove().catch(()=>{});
+      if(db){ db.ref(`${P_CHAT}/${code}`).remove().catch(()=>{}); db.ref(`${P_PRES}/${code}`).remove().catch(()=>{}); }
+    } else if(data && data.status === 'lobby'){
+      ref.child('players/'+myId).remove().catch(()=>{});
+      if(data.host === myId) ref.child('host').set(others[0]).catch(()=>{});
+    } else if(online){ online.set(false).catch(()=>{}); }
   }
+  roomRef=null; ROOM=null; RD=null; G=null; MODE=null; ME=-1;
+  closeOverlays(); $('#onAirBox').classList.remove('on');
+  try{ history.replaceState(null, '', location.pathname); }catch(e){}
+  show('home');
+}
+$('#lbLeave').onclick = leaveRoom;
 
-  function testVideo(id, waitMs) {
-    return new Promise(resolve => {
-      checkDone = resolve;
-      // onStateChange 이벤트를 놓치는 경우가 있어 재생 상태를 직접 확인도 함
-      clearInterval(checkPoll);
-      checkPoll = setInterval(() => {
-        try {
-          if (player.getPlayerState() === YT.PlayerState.PLAYING) finishCheck('ok');
-        } catch (err) { /* 아직 준비 전이면 다음 차례에 다시 확인 */ }
-      }, 400);
-      checkTimer = setTimeout(() => finishCheck('timeout'), waitMs || 20000);
-      player.loadVideoById(id);
-    });
+/* ---------- 이어서 들어가기 ---------- */
+function savedRoom(){
+  try{
+    const v = JSON.parse(store.get(ROOM_KEY) || 'null');
+    if(!v || !v.code) return null;
+    if(Date.now() - (v.t||0) > 6*3600*1000){ store.del(ROOM_KEY); return null; }
+    return v;
+  }catch(e){ return null; }
+}
+function prepOnline(){
+  $('#fbWarn').hidden = fbReady();
+  $('#onName').value = store.get('ht_name') || '';
+  const url = new URLSearchParams(location.search).get('room');
+  if(url) $('#onCode').value = url.toUpperCase();
+  const sv = savedRoom(), box = $('#onResume');
+  if(!sv){ box.innerHTML = ''; return; }
+  box.innerHTML = `<div class="warnbox">아까 있던 방 <b>${esc(sv.code)}</b>에 다시 들어갈까요?
+    <div class="row" style="margin-top:8px"><button class="btn small" id="onResumeYes">다시 들어가기</button>
+    <button class="btn ghost small" id="onResumeNo">안 할래요</button></div></div>`;
+  $('#onResumeNo').onclick = () => { store.del(ROOM_KEY); prepOnline(); };
+  $('#onResumeYes').onclick = async () => {
+    if(!fbReady()) return toast('firebaseConfig를 먼저 채워 주세요');
+    try{
+      const sn = await db.ref(P_ROOM+'/'+sv.code).get();
+      if(!sn.exists()){ toast('그 방은 이미 닫혔어요'); store.del(ROOM_KEY); prepOnline(); return; }
+      const r = sn.val();
+      if(!r.players || !r.players[sv.id]){ toast('그 방에 내 자리가 없어요'); store.del(ROOM_KEY); prepOnline(); return; }
+      enterRoom(sv.code);
+    }catch(e){ toast('들어가지 못했어요: ' + e.message); }
+  };
+}
+
+/* =========================================================
+   채팅 (온라인 방에서만)
+   ========================================================= */
+const BAD_WORDS = ['시발','씨발','씨팔','시팔','ㅅㅂ','개새끼','개색기','새꺄','병신','ㅂㅅ','좆','좇',
+  '존나','존내','걸레','창녀','미친놈','미친년','지랄','닥쳐','꺼져','뒤져','죽어라',
+  '한남충','한녀충','틀딱','급식충','맘충','fuck','fucking','shit','bitch','asshole','bastard','nigger','retard'];
+const CHAT_MAX=150, CHAT_COOL=1200, CHAT_DUP=15000;
+let chatRef=null, chatCb=null, chatOpen=false, chatUnread=0, lastSentAt=0, lastSentText='';
+
+function chatTip(m){
+  const t = $('#chatTip'); t.textContent = m; t.classList.add('on');
+  clearTimeout(chatTip._t); chatTip._t = setTimeout(()=>t.classList.remove('on'), 1800);
+}
+const squash = t => t.replace(/(.)\1{7,}/g, (m,c)=>c.repeat(8));
+/* 띄어쓰기·기호로 피해 가는 것도 잡도록, 기호를 뺀 축약본에서 찾아 원래 자리를 *로 가림 */
+function maskBad(text){
+  const skip = /[\s.,!?~^*\-_'"]/;
+  let plain=''; const map=[];
+  for(let i=0;i<text.length;i++){ if(!skip.test(text[i])){ plain+=text[i]; map.push(i); } }
+  const low = plain.toLowerCase(), chars = text.split(''); let hit=false;
+  for(const w0 of BAD_WORDS){
+    const w = w0.toLowerCase(); if(!w) continue;
+    let from=0, pos;
+    while((pos = low.indexOf(w, from)) !== -1){ hit=true; for(let k=0;k<w.length;k++) chars[map[pos+k]]='*'; from = pos+w.length; }
   }
+  return { text: chars.join(''), hit };
+}
+/* 자음만 있는 메시지는 막되 ㅋㅋㅋ·ㅎㅎㅎ 웃음은 허용 */
+function onlyJamo(t){
+  const x = t.replace(/\s+/g,'');
+  if(!x || /^[ㅋㅎ]+$/.test(x)) return false;
+  return /^[ㄱ-ㅎ]+$/.test(x);
+}
+function chatBadge(){
+  const b = $('#chatBadge');
+  if(chatUnread > 0){ b.textContent = chatUnread > 9 ? '9+' : chatUnread; b.classList.add('on'); }
+  else b.classList.remove('on');
+}
+function toggleChat(v){
+  chatOpen = (typeof v === 'boolean') ? v : !chatOpen;
+  $('#chatBox').classList.toggle('on', chatOpen);
+  if(chatOpen){ chatUnread=0; chatBadge(); const l=$('#chatLog'); l.scrollTop=l.scrollHeight; $('#chatInput').focus(); }
+}
+function paintChat(list){
+  const box = $('#chatLog');
+  if(!list.length){ box.innerHTML = '<div class="chat-none">아직 메시지가 없어요. 먼저 인사해 보세요!</div>'; return; }
+  box.innerHTML = list.map(m => m ? `<div class="chat-m${m.id===myId?' me':''}"><span class="who">${esc(m.name||'??')}</span>${esc(maskBad(String(m.text||'')).text)}</div>` : '').join('');
+  box.scrollTop = box.scrollHeight;
+}
+function attachChat(code){
+  if(!db) return;
+  detachChat();
+  $('#chatBtn').classList.add('on');
+  lastSentAt=0; lastSentText=''; chatUnread=0; chatBadge();
+  chatRef = db.ref(`${P_CHAT}/${code}`).limitToLast(50);
+  let first = true;
+  chatCb = chatRef.on('value', sn => {
+    const v = sn.val() || {}, list = Object.keys(v).sort().map(k => v[k]);
+    paintChat(list);
+    const last = list[list.length-1];
+    if(!first && !chatOpen && last && last.id !== myId){ chatUnread++; chatBadge(); }
+    first = false;
+  });
+}
+function detachChat(){
+  if(chatRef && chatCb) chatRef.off('value', chatCb);
+  chatRef=null; chatCb=null; chatOpen=false; chatUnread=0;
+  $('#chatBtn').classList.remove('on');
+  $('#chatBox').classList.remove('on');
+  $('#chatLog').innerHTML = '';
+  chatBadge();
+}
+function sendChat(){
+  const input = $('#chatInput');
+  let text = input.value.trim();
+  if(!text || MODE !== 'online' || !db || !ROOM) return;
+  if(onlyJamo(text)) return chatTip('🔤 초성만으로는 보낼 수 없어요');
+  const now = Date.now();
+  if(now - lastSentAt < CHAT_COOL) return chatTip('⏱️ 너무 빨라요! 잠시 후에 보내요');
+  if(text === lastSentText && now - lastSentAt < CHAT_DUP) return chatTip('🔁 같은 메시지는 잠시 뒤에 보낼 수 있어요');
+  text = squash(text).slice(0, CHAT_MAX);
+  const { text:masked, hit } = maskBad(text);
+  text = masked; lastSentAt = now; lastSentText = text;
+  if(hit) chatTip('⚠️ 거친 표현은 별표로 가렸어요');
+  db.ref(`${P_CHAT}/${ROOM}`).push({ id:myId, name:(store.get('ht_name')||'손님'), text, ts:TS() });
+  input.value = '';
+}
+$('#chatBtn').onclick = () => toggleChat();
+$('#chatClose').onclick = () => toggleChat(false);
+$('#chatSend').onclick = sendChat;
+$('#chatInput').addEventListener('keydown', e => {
+  if(e.key !== 'Enter' || e.isComposing || e.keyCode === 229) return;   // 한글 조합 중 Enter는 무시
+  e.preventDefault(); sendChat();
+});
 
-  function finishCheck(status, code) {
-    if (!checkDone) return;
-    clearTimeout(checkTimer);
+/* =========================================================
+   게임 방법
+   ========================================================= */
+const RULES_HTML = `
+<h2>힛스터 게임 방법</h2>
+<p class="note" style="text-align:center">노래를 듣고 <b>언제 나온 곡인지</b> 맞혀서 내 앞에 연도순으로 카드를 늘어놓는 게임이에요.</p>
+
+<h3>🎯 이기는 법</h3>
+<p>내 앞에 카드를 <b>10장</b> 먼저 모으면 이겨요. 시작할 때 모두 카드 1장을 공짜로 받고, 🪙토큰 2개도 함께 받아요.</p>
+
+<h3>▶ 내 차례에 하는 일</h3>
+<p>1. 🎧 버튼을 눌러 노래를 들어요. 연도는 아직 안 보여요.<br>
+2. 내 카드 줄에서 <b>이 노래가 들어갈 자리</b>로 노란 카드를 끌어다 놓아요.<br>
+3. 놓은 자리가 맞으면 카드를 가져오고, 틀리면 그 카드는 버려요.</p>
+<p class="note">같은 해에 나온 곡 옆에 놓아도 정답이에요.</p>
+
+<h3>🪙 토큰 쓰는 법</h3>
+<p><b>제목·가수 맞히기</b> — 노래를 들을 때 제목과 가수를 <b>둘 다</b> 맞히면 토큰을 1개 더 받아요. (최대 5개)<br>
+&nbsp;&nbsp;· <b>로컬</b>에서는 소리 내어 말한 뒤 🎤 버튼을 눌러요. 정답이 공개되면 <b>다른 사람들이 인정</b>해 줍니다.<br>
+&nbsp;&nbsp;· <b>온라인</b>에서는 노래를 들으면서 제목·가수를 <b>칸에 적어</b> 둬요. 정답 공개 때 자동으로 채점됩니다.<br>
+<b>넘기기 (1개)</b> — 모르겠으면 토큰 1개를 내고 이 곡을 건너뛰어요.<br>
+<b>딴지 걸기 (1개)</b> — 다른 사람이 놓은 자리가 틀렸다고 생각하면 토큰 1개를 내고 내가 다시 놓아요.
+그 사람이 틀리고 내가 맞히면 카드는 내 것이 돼요. 내가 틀리면 토큰만 잃어요.<br>
+<b>그냥 받기 (3개)</b> — 토큰 3개를 내면 지금 나온 곡을 확인 없이 바로 가져와요.</p>
+
+<h3>🔊 소리가 안 나올 때</h3>
+<p>휴대폰은 처음 한 번은 자동 재생이 막힐 수 있어요. 🎧 버튼을 한 번 더 눌러주세요.
+아주 가끔 유튜브에서 막아둔 영상이 있는데, 그런 곡은 자동으로 다른 곡으로 바뀌어요.</p>
+
+<h3>👥 로컬 / 온라인</h3>
+<p><b>로컬 게임</b>은 기기 하나를 돌려가며 해요. 차례인 사람이 화면을 보고 카드를 놓으면 돼요.<br>
+<b>온라인 게임</b>은 각자 기기에서 같은 방 코드로 들어와서 함께해요. 방 코드는 4글자예요.</p>
+
+<div style="text-align:center;margin-top:18px"><button class="btn" id="rulesClose">닫기</button></div>
+`;
+function openRules(){
+  $('#rulesBody').innerHTML = RULES_HTML;
+  $('#rulesClose').onclick = () => ov('ovRules', false);
+  ov('ovRules', true);
+}
+
+/* =========================================================
+   화면 이동 / 공통 버튼
+   ========================================================= */
+document.addEventListener('click', e => {
+  const goBtn = e.target.closest('[data-go]');
+  if(goBtn){ goTo(goBtn.getAttribute('data-go')); return; }
+  if(e.target.closest('[data-rules]')){ openRules(); return; }
+});
+function goTo(id){
+  closeOverlays();
+  if(id === 'localSetup') buildLocalSetup();
+  if(id === 'onlineSetup') prepOnline();
+  if(id === 'home'){ MODE = null; G = null; stopPlay(); $('#onAirBox').classList.remove('on'); }
+  show(id);
+}
+/* 오버레이 바깥을 눌러도 닫히게 (결과 창은 그대로 둠) */
+['ovRules','ovLeave'].forEach(id => {
+  $('#'+id).addEventListener('click', e => { if(e.target.id === id) ov(id, false); });
+});
+
+/* ---------- 게임에서 나가기 ---------- */
+$('#gExit').onclick = () => {
+  $('#leaveMsg').textContent = (MODE === 'online')
+    ? '방에서 나가면 하던 게임에서 빠지게 돼요.'
+    : '지금 하던 게임은 저장되지 않아요.';
+  ov('ovLeave', true);
+};
+$('#leaveStay').onclick = () => ov('ovLeave', false);
+$('#leaveGo').onclick = () => {
+  ov('ovLeave', false);
+  if(MODE === 'online') leaveRoom();
+  else { clearTimeout(nextTimer); stopPlay(); MODE=null; G=null; $('#onAirBox').classList.remove('on'); show('home'); }
+};
+
+/* =========================================================
+   곡 점검 모드 (주소 끝에 ?check 를 붙이면 열림)
+   ========================================================= */
+let checking = false, checkDone = null, checkTimer = null, checkPoll = null;
+
+function errText(c){
+  if(c === 100) return '영상 없음/비공개 (100)';
+  if(c === 101 || c === 150) return '퍼가기(임베드) 금지 (150)';
+  if(c === 2) return '잘못된 영상 ID (2)';
+  if(c === 5) return '재생기 오류 (5)';
+  if(c === 153) return '유튜브 설정 오류 (153) — 인터넷 주소(https://…)로 열어주세요';
+  return '오류 ' + c;
+}
+function testVideo(id, waitMs){
+  return new Promise(resolve => {
+    checkDone = resolve;
+    /* onStateChange 를 놓치는 경우가 있어 재생 상태를 직접 확인도 함 */
     clearInterval(checkPoll);
-    const done = checkDone;
-    checkDone = null;
-    let title = '';
-    if (status === 'ok') {
-      try { title = player.getVideoData().title || '(제목 없음)'; } catch (err) { title = '(제목 확인 불가)'; }
+    checkPoll = setInterval(() => {
+      try{
+        const st = yt.getPlayerState();
+        if(st === YT.PlayerState.PLAYING){ finishCheck('ok'); return; }
+        /* 불러오기는 됐는데 자동 재생이 안 걸린 채 멈춰 있으면 직접 눌러 줌 */
+        if(st === YT.PlayerState.CUED || st === YT.PlayerState.PAUSED || st === -1) yt.playVideo();
+      }catch(err){ /* 아직 준비 전이면 다음 차례에 다시 */ }
+    }, 500);
+    checkTimer = setTimeout(() => finishCheck('timeout'), waitMs || 20000);
+    yt.loadVideoById(id);
+  });
+}
+function finishCheck(status, code){
+  if(!checkDone) return;
+  clearTimeout(checkTimer); clearInterval(checkPoll);
+  const done = checkDone; checkDone = null;
+  let title = '';
+  if(status === 'ok'){
+    try{ title = yt.getVideoData().title || '(제목 없음)'; }catch(err){ title = '(제목 확인 불가)'; }
+  }
+  try{ yt.stopVideo(); }catch(err){}
+  setTimeout(() => done({ status, code, title }), 300);
+}
+async function runCheck(){
+  const startBtn = $('#checkStart'), prog = $('#checkProgress'), out = $('#checkResults');
+  startBtn.disabled = true;
+  stopPlay();
+  checking = true;
+  yt.mute();
+  out.innerHTML = '';
+  let badCount = 0;
+
+  for(let i = 0; i < initialSongData.length; i++){
+    const s = initialSongData[i];
+    prog.textContent = `점검 중... ${i+1} / ${initialSongData.length}`;
+    let r = await testVideo(s.l);
+    if(r.status === 'timeout'){   /* 인터넷이 느려 놓친 경우가 많아 한 번 더 */
+      prog.textContent = `다시 확인 중... ${i+1} / ${initialSongData.length}`;
+      r = await testVideo(s.l, 30000);
     }
-    player.stopVideo();
-    setTimeout(() => done({ status, code, title }), 300);
-  }
-
-  async function runCheck() {
-    const startBtn = document.getElementById('check-start');
-    const progress = document.getElementById('check-progress');
-    const out = document.getElementById('check-results');
-    startBtn.disabled = true;
-    stopPlayback();
-    checking = true;
-    player.mute();
-    out.innerHTML = '';
-    let badCount = 0;
-
-    for (let i = 0; i < initialSongData.length; i++) {
-      const s = initialSongData[i];
-      progress.innerText = `점검 중... ${i + 1} / ${initialSongData.length}`;
-      let r = await testVideo(s.l);
-      if (r.status === 'timeout') {   // 인터넷이 느려 놓친 경우가 많아 한 번 더 확인
-        progress.innerText = `다시 확인 중... ${i + 1} / ${initialSongData.length}`;
-        r = await testVideo(s.l, 30000);
-      }
-      const row = document.createElement('div');
-      row.className = 'chk-row';
-      const label = `${s.t} - ${s.a}  [${s.l}]`;
-      if (r.status === 'ok') {
-        row.classList.add('chk-ok');
-        row.innerText = `✅ ${label}\n     ↳ 실제 영상 제목: ${r.title}`;
-        out.appendChild(row);
-      } else {
-        badCount++;
-        if (r.status === 'err') { badIds.add(s.l); persistBadIds(); }
-        row.classList.add(r.status === 'err' ? 'chk-bad' : 'chk-warn');
-        row.innerText = r.status === 'err'
-          ? `❌ ${label} → ${errText(r.code)}`
-          : `⏱ ${label} → 응답 없음 (시간 초과)`;
-        out.prepend(row);
-      }
+    const row = document.createElement('div');
+    row.className = 'chk-row';
+    const label = `${s.t} - ${s.a}  [${s.l}]`;
+    if(r.status === 'ok'){
+      row.classList.add('chk-ok');
+      row.textContent = `✅ ${label}\n     ↳ 실제 영상 제목: ${r.title}`;
+      out.appendChild(row);
+    } else {
+      badCount++;
+      if(r.status === 'err'){ badIds.add(s.l); persistBad(); }
+      row.classList.add(r.status === 'err' ? 'chk-bad' : 'chk-warn');
+      row.textContent = (r.status === 'err')
+        ? `❌ ${label} → ${errText(r.code)}`
+        : `⏱ ${label} → 응답 없음 (시간 초과)`;
+      out.prepend(row);
     }
-
-    player.stopVideo();
-    player.unMute();
-    checking = false;
-    startBtn.disabled = false;
-    progress.innerText = `점검 완료! 문제 있는 곡 ${badCount}개 (맨 위 빨간/노란 줄) 중 ❌ 표시된 곡은 앞으로 게임에서 자동으로 제외됩니다. 초록 줄도 '실제 영상 제목'이 그 노래가 맞는지 확인해 주세요.`;
-    updateBlocklistInfo();
   }
+  try{ yt.stopVideo(); yt.unMute(); }catch(err){}
+  checking = false;
+  startBtn.disabled = false;
+  prog.textContent = `점검 완료! 문제 있는 곡 ${badCount}개 (맨 위 빨간/노란 줄). ❌ 표시된 곡은 앞으로 게임에서 자동으로 빠져요. 초록 줄도 '실제 영상 제목'이 그 노래가 맞는지 확인해 주세요.`;
+  paintBadInfo();
+}
+function paintBadInfo(){ $('#checkInfo').textContent = `전체 ${initialSongData.length}곡 · 지금 자동 제외된 곡 ${badIds.size}개`; }
 
-  document.getElementById('check-start').onclick = runCheck;
-  document.getElementById('check-close').onclick = () => {
-    if (checking) return alert('점검이 끝난 뒤에 닫아주세요.');
-    document.getElementById('check-panel').style.display = 'none';
-  };
-  document.getElementById('check-reset-blocklist').onclick = () => {
-    if (checking) return alert('점검이 끝난 뒤에 눌러주세요.');
-    if (!confirm('지금까지 재생 실패로 자동 제외된 곡 목록을 전부 초기화할까요?')) return;
-    badIds.clear();
-    persistBadIds();
-    updateBlocklistInfo();
-  };
-  function updateBlocklistInfo() {
-    document.getElementById('check-blocklist-info').innerText = `현재 자동 제외된 곡: ${badIds.size}개`;
-  }
-  updateBlocklistInfo();
+$('#checkStart').onclick = runCheck;
+$('#checkClose').onclick = () => {
+  if(checking) return toast('점검이 끝난 뒤에 닫아주세요');
+  $('#checkPanel').style.display = 'none';
+};
+$('#checkReset').onclick = () => {
+  if(checking) return toast('점검이 끝난 뒤에 눌러주세요');
+  if(!confirm('지금까지 재생 실패로 자동 제외된 곡 목록을 전부 초기화할까요?')) return;
+  badIds.clear(); persistBad(); paintBadInfo();
+};
+paintBadInfo();
+
+/* =========================================================
+   시작
+   ========================================================= */
+buildLocalSetup();
+if(isFile){
+  setTimeout(() => toast('파일로 열면 유튜브가 막힐 수 있어요. 깃허브 페이지스 주소로 열어주세요'), 800);
+}
+{
+  const url = new URLSearchParams(location.search).get('room');
+  if(url){ prepOnline(); show('onlineSetup'); }
+}
+window.addEventListener('beforeunload', () => { try{ stopPresence(); }catch(e){} });
 </script>
-<!-- 콜백 함수를 먼저 정의한 뒤에 유튜브 API를 불러옴 -->
 <script src="https://www.youtube.com/iframe_api"></script>
 </body>
 </html>
