@@ -748,6 +748,45 @@ function apply(s, a){
       s.cpos = a.pos;
       return finish(s);
     }
+    /* 게임 도중에 나가기 — 남은 사람들이 이어서 한다 */
+    case 'quit': {
+      const i = s.players.findIndex(p => p.id === a.pid);
+      if(i < 0) return s;
+      s.players[i].cards.forEach(c => s.deck.push(c));   // 나간 사람 카드는 덱으로
+      s.players.splice(i, 1);
+      s.seq++;
+      const n = s.players.length;
+      if(n === 0){ s.phase='over'; s.winner=null; s.last=null; return s; }
+      if(n === 1){ s.phase='over'; s.winner=0; s.last=null; return s; }
+
+      const dec = v => (v == null ? null : (v > i ? v - 1 : v));
+      const wasShow = (s.phase === 'show');
+      const turnGone = (s.turn === i) || (s.placer === i);
+      const chalGone = (s.challenger === i);
+      s.challenger = chalGone ? null : dec(s.challenger);
+      s.judge = (s.judge === i) ? null : dec(s.judge);
+      s.passed = toArr(s.passed).filter(v => v !== i).map(dec);
+      s.turn = (s.turn === i) ? (i % n) : dec(s.turn);
+      s.placer = (s.placer === i) ? s.turn : dec(s.placer);
+
+      if(turnGone){
+        /* 차례인 사람이 나갔으면 다음 사람부터 다시 */
+        s.placer = s.turn; s.pos=null; s.cpos=null; s.challenger=null; s.passed=[];
+        s.claim=null; s.judge=null; s.last=null;
+        if(wasShow || s.pending==null){
+          if(!s.deck.length){ s.phase='over'; s.winner=null; return s; }
+          s.pending = s.deck.pop();
+        }
+        s.phase = 'place';
+        return s;
+      }
+      if(s.phase === 'challenge' && chalGone){ return finish(s); }
+      if(s.phase === 'ask'){
+        const el = eligible(s);
+        if(!el.length || el.every(k => s.passed.includes(k))) return finish(s);
+      }
+      return s;
+    }
     case 'judge': {
       if(s.phase!=='show' || s.judge==null) return s;
       if(a.by!=null && a.by>=0 && a.by===s.judge) throw new Error('본인은 인정할 수 없어요');
@@ -937,7 +976,18 @@ function makeCard(idx, revealed){
   btnOf(el).onclick = ev => { ev.stopPropagation(); playCard(el); };
   return el;
 }
+let tlSortable = null;
+function initTimelineDrag(){
+  if(tlSortable) return;
+  tlSortable = Sortable.create($('#timeline'), {
+    filter: '.locked, .play-btn',
+    preventOnFilter: false,
+    animation: 150,
+    draggable: '.card'
+  });
+}
 function renderTimeline(){
+  initTimelineDrag();
   const s = G, v = viewOf(s), p = s.players[v], tl = $('#timeline');
   const keepIdx = playingIdx, keepHeard = pendEl && pendEl.dataset.heard === '1';
   tl.innerHTML = ''; pendEl = null;
@@ -1196,12 +1246,21 @@ $('#onJoin').onclick = async () => {
   try{
     const sn = await db.ref(P_ROOM+'/'+code).get();
     if(!sn.exists()) return toast('그런 방이 없어요. 코드를 확인해 주세요');
-    const r = sn.val(), ps = r.players || {};
-    if(!ps[myId]){
-      if(r.status !== 'lobby') return toast('이미 게임이 시작된 방이에요');
-      if(Object.keys(ps).length >= 6) return toast('방이 가득 찼어요 (최대 6명)');
-      await db.ref(`${P_ROOM}/${code}/players/${myId}`).set({ name, t:Date.now(), online:true });
-    }
+    /* 두 사람이 같은 순간에 들어와도 정원이 넘지 않도록 한 번에 처리한다 */
+    let why = '';
+    const res = await db.ref(P_ROOM+'/'+code).transaction(r => {
+      if(!r) return r;
+      r.players = r.players || {};
+      if(r.players[myId]){ r.players[myId].name = name; r.players[myId].online = true; why=''; return r; }
+      if(r.status !== 'lobby'){ why = '이미 게임이 시작된 방이에요'; return; }
+      if(Object.keys(r.players).length >= 6){ why = '방이 가득 찼어요 (최대 6명)'; return; }
+      r.players[myId] = { name, t:Date.now(), online:true };
+      why = '';
+      return r;
+    }, null, false);
+    const rr = res.snapshot && res.snapshot.val();
+    if(why) return toast(why);
+    if(!rr || !rr.players || !rr.players[myId]) return toast('들어가지 못했어요. 다시 해 주세요');
     enterRoom(code);
   }catch(e){ toast('들어가지 못했어요: ' + e.message); }
 };
@@ -1222,7 +1281,12 @@ function onRoom(r){
   if(r.status !== 'playing' || !r.state){ G=null; closeOverlays(); show('lobby'); renderLobby(); return; }
   const s = norm(clone(r.state));
   const fresh = !G || G.gameId !== s.gameId;
+  if(!fresh && G){
+    const gone = G.players.filter(p => !s.players.some(q => q.id === p.id)).map(p => p.name);
+    if(gone.length) toast(gone.join(', ') + '님이 게임에서 나갔어요');
+  }
   G = s; ME = s.players.findIndex(p => p.id === myId);
+  if(ME < 0 && (!r.players || !r.players[myId])){ toast('게임에서 빠졌어요'); leaveRoom(); return; }
   if(fresh){ closeOverlays(); stopPlay(); }
   show('game'); renderGame();
 }
@@ -1244,10 +1308,12 @@ function watchConnection(){
 }
 /* 2.5초마다 살아 있다고 알리고, 다른 사람 상태는 점 색으로 보여 준다 */
 function startPresence(code){
+  stopPresence();                                     // 남아 있던 감시자를 먼저 끊는다
   const r = db.ref(`${P_PRES}/${code}/${myId}`);
   r.set({ name: store.get('ht_name') || '손님', connected:true, lastSeen:TS(), pingMs:null });
   r.onDisconnect().update({ connected:false });
-  db.ref(`${P_PRES}/${code}`).on('value', sn => { PRES = sn.val() || {}; paintPresence(); });
+  presRef = db.ref(`${P_PRES}/${code}`);
+  presRef.on('value', sn => { PRES = sn.val() || {}; paintPresence(); });
   clearInterval(pingTimer);
   pingTimer = setInterval(() => {
     if(MODE!=='online' || !ROOM) return;
@@ -1257,10 +1323,11 @@ function startPresence(code){
   clearInterval(presTimer);
   presTimer = setInterval(paintPresence, 1000);
 }
+let presRef = null;
 function stopPresence(){
   clearInterval(pingTimer); pingTimer=null;
   clearInterval(presTimer); presTimer=null;
-  if(ROOM && db) db.ref(`${P_PRES}/${ROOM}`).off();
+  if(presRef){ presRef.off(); presRef = null; }      // 붙여 둔 그 경로를 정확히 끊는다
   PRES = {};
 }
 function presCls(id){
@@ -1274,16 +1341,25 @@ function presCls(id){
 function paintPresence(){
   $('#connBar').classList.toggle('on', MODE==='online' && selfOffline);
   if(MODE !== 'online') return;
+  maybeMoveHost();
   document.querySelectorAll('.dot[data-pid]').forEach(el => { el.className = 'dot ' + presCls(el.dataset.pid); });
 }
-/* 방장이 오래 사라지면 남은 사람 중 가장 먼저 들어온 사람에게 넘긴다 */
+/* 방장이 오래 사라지면 남은 사람 중 가장 먼저 들어온 사람에게 넘긴다 (대기실·게임 중 모두) */
+let hostTryAt = 0;
 function maybeMoveHost(){
-  if(!RD || !roomRef || RD.status !== 'lobby') return;
+  if(!RD || !roomRef || RD.host === myId) return;
   const h = PRES[RD.host];
-  if(h && h.lastSeen && serverNow() - h.lastSeen < TAKEOVER_MS) return;
+  const hostHere = !!(RD.players && RD.players[RD.host]);
+  if(hostHere && h && h.lastSeen && serverNow() - h.lastSeen < TAKEOVER_MS) return;
+  if(Date.now() - hostTryAt < 5000) return;          // 여러 번 겹쳐 쓰지 않게
   const alive = Object.entries(RD.players||{}).sort((a,b)=>a[1].t-b[1].t).map(([id])=>id)
     .filter(id => { const m = PRES[id]; return m && m.connected !== false && serverNow()-(m.lastSeen||0) < STALE_MS; });
-  if(alive.length && alive[0] === myId) roomRef.child('host').set(myId);
+  if(!alive.length || alive[0] !== myId) return;
+  hostTryAt = Date.now();
+  const gone = RD.host;
+  roomRef.child('host').transaction(cur => (cur === gone ? myId : undefined), (e, done) => {
+    if(!e && done) toast('방장이 오래 안 보여서 내가 방장이 됐어요');
+  }, false);
 }
 function renderLobby(){
   const r = RD, ps = Object.entries(r.players||{}).sort((a,b)=>a[1].t-b[1].t);
@@ -1304,11 +1380,22 @@ function renderLobby(){
   if(st) st.onclick = () => {
     const list = ps.slice(0,6).map(([id,p]) => ({ id, name:p.name }));
     if(list.length < 2) return toast('2명 이상 있어야 해요');
-    roomRef.update({ status:'playing', state:newGame(list) });
+    roomRef.transaction(r => {
+      if(!r || r.status !== 'lobby') return;          // 이미 시작됐으면 그대로 둔다
+      r.status = 'playing'; r.state = newGame(list);
+      return r;
+    }, null, false);
   };
 }
 function leaveRoom(){
   const code = ROOM, ref = roomRef, data = RD;
+  /* 게임 중이면 판에서도 빠져서 남은 사람들이 이어서 할 수 있게 한다 */
+  if(ref && data && data.status === 'playing' && data.state && G && G.players.some(p => p.id === myId)){
+    ref.child('state').transaction(cur => {
+      if(cur === null) return cur;
+      try{ return apply(norm(cur), { type:'quit', pid: myId }); }catch(e){ return; }
+    }, null, false);
+  }
   detachChat(); stopPresence(); store.del(ROOM_KEY);
   clearTimeout(nextTimer); stopPlay();
   if(code && db){
@@ -1324,7 +1411,8 @@ function leaveRoom(){
     if(data && (!others.length || lastOne)){
       ref.remove().catch(()=>{});
       if(db){ db.ref(`${P_CHAT}/${code}`).remove().catch(()=>{}); db.ref(`${P_PRES}/${code}`).remove().catch(()=>{}); }
-    } else if(data && data.status === 'lobby'){
+    } else if(data){
+      /* 스스로 나간 것이므로 방 명단에서도 뺀다 (끊긴 것은 online:false 로만 남는다) */
       ref.child('players/'+myId).remove().catch(()=>{});
       if(data.host === myId) ref.child('host').set(others[0]).catch(()=>{});
     } else if(online){ online.set(false).catch(()=>{}); }
@@ -1527,7 +1615,7 @@ function goTo(id){
 /* ---------- 게임에서 나가기 ---------- */
 $('#gExit').onclick = () => {
   $('#leaveMsg').textContent = (MODE === 'online')
-    ? '방에서 나가면 하던 게임에서 빠지게 돼요.'
+    ? '내 카드는 덱으로 돌아가고, 남은 사람들끼리 이어서 해요. 다시 들어올 수는 없어요.'
     : '지금 하던 게임은 저장되지 않아요.';
   ov('ovLeave', true);
 };
