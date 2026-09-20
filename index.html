@@ -69,6 +69,9 @@
   #turnBanner{font-family:var(--disp);font-size:1.3rem;color:var(--gold);margin:10px 0 3px;word-break:keep-all}
   #turnSub{color:#9fb3c6;font-size:.86rem;margin-bottom:9px;word-break:keep-all;padding:0 10px}
   #board{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:9px}
+  #board.many .chip{font-size:.72rem;padding:4px 9px}
+  .chip.mine{border-color:var(--gold)}
+  .chip.more{background:transparent;color:#9fb3c6;border-style:dashed}
   .chip{background:var(--card);border:2px solid var(--line);border-radius:20px;padding:5px 12px;font-size:.83rem;font-weight:700;white-space:nowrap}
   .chip.active{background:var(--gold);color:#000;border-color:#fff}
   .chip .dot{display:inline-block;margin-right:4px;vertical-align:middle}
@@ -86,6 +89,7 @@
   .card.correct{background:var(--ok);border-color:#2ecc71}
   .card.wrong{background:var(--bad);border-color:#8e44ad}
   .card.taken{background:#1f6f4a;border-color:#2ecc71}
+  .pmark{border:2px dashed var(--orange);color:var(--orange);border-radius:10px;padding:5px 8px;margin-bottom:9px;font-size:.8rem;font-weight:800;word-break:keep-all}
   .acts{position:sticky;bottom:64px;z-index:30;background:var(--bg);padding:9px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;border-top:2px solid var(--line)}
   .acts .answer{flex:0 0 100%;max-width:440px;margin:0 auto 2px}
   .acts .answer .note{margin:0 0 5px;font-size:.78rem}
@@ -133,18 +137,63 @@
   .chat-in input{font-size:.92rem;padding:8px 10px;min-width:0;flex:1}
   @media(max-width:520px){ .chat-box{right:4vw;left:4vw;width:auto} }
 
+  /* 정답·오답 팝업 */
+  #fx{position:fixed;inset:0;z-index:95;display:none;align-items:center;justify-content:center;pointer-events:none;opacity:1;transition:opacity .25s}
+  #fx.on{display:flex}
+  #fx.leave{opacity:0}
+  #fx .fx-box{min-width:230px;max-width:84vw;padding:22px 30px 20px;border-radius:22px;border:4px solid #fff;box-shadow:0 10px 40px rgba(0,0,0,.55);animation:fxPop .38s cubic-bezier(.2,1.4,.4,1) both}
+  #fx.ok .fx-box{background:var(--ok)}
+  #fx.take .fx-box{background:var(--orange)}
+  #fx.bad .fx-box{background:var(--bad);animation:fxPop .38s cubic-bezier(.2,1.4,.4,1) both, fxShake .4s .38s}
+  .fx-ico{font-size:4rem;line-height:1}
+  .fx-title{font-family:var(--disp);font-size:2.3rem;margin-top:6px;color:#fff;text-shadow:0 3px 0 rgba(0,0,0,.25)}
+  .fx-sub{font-size:.95rem;font-weight:700;margin-top:6px;word-break:keep-all;color:#fff}
+  @keyframes fxPop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+  @keyframes fxShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+
   /* 곡 점검 모드 (?check) */
   #checkPanel{display:none;position:fixed;inset:0;background:rgba(0,0,0,.96);z-index:90;overflow-y:auto;padding:20px}
   #checkPanel button{margin:0 4px 6px}
   #checkResults{max-width:700px;margin:0 auto;text-align:left}
   .chk-row{padding:7px 8px;border-bottom:1px solid var(--line);font-size:.84rem;white-space:pre-wrap}
+  .pmark.chal{border-color:var(--orange);color:var(--orange)}
   .chk-ok{color:#55efc4}.chk-bad{color:#ff7675;font-weight:700}.chk-warn{color:#ffeaa7;font-weight:700}
+
+  /* ===== 교실 모드 ===== */
+  /* 전자칠판용 확대 — 대부분의 치수가 rem 이라 html 글씨 크기만 키우면 전체가 함께 커진다 */
+  html.board .wrap{max-width:52rem}
+  html.board #timeline{max-width:46rem;border-width:3px}
+  html.board #askBar{max-width:46rem}
+  html.board .acts .answer{max-width:40rem}
+  html.board .chat-btn{display:none !important}
+  html.board .credit{display:none}
+  html.board .card{padding:.7rem}
+  html.board .chip{padding:.35rem .8rem}
+
+  .mode-pick{display:grid;gap:12px;margin:6px 0 4px}
+  .mode-card{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:14px;text-align:left;cursor:pointer;color:#fff;font-family:var(--body)}
+  .mode-card:hover{border-color:var(--gold)}
+  .mode-card.sel{border-color:var(--gold);background:#3d5468;box-shadow:0 0 0 2px var(--gold) inset}
+  .mode-card b{display:block;color:var(--gold);font-size:1.02rem;margin-bottom:4px}
+  .mode-card span{font-size:.85rem;color:#c8d6e2;line-height:1.6;word-break:keep-all}
+  .opt-row{display:flex;flex-wrap:wrap;gap:6px}
+  .opt-row button{background:var(--bg);color:#fff;border:2px solid var(--line);border-radius:9px;padding:8px 14px;font-weight:700;font-size:.9rem;cursor:pointer;font-family:var(--body)}
+  .opt-row button.sel{background:var(--gold);color:#000;border-color:#fff}
+
+  /* 칠판 대기실 */
+  .bigcode{font-family:var(--disp);font-size:5rem;color:var(--gold);letter-spacing:.25em;line-height:1.1;margin:.2em 0}
+  .joinurl{font-size:1rem;color:#c8d6e2;word-break:break-all;margin-bottom:.6em}
+  .teamlist{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;list-style:none;padding:0;margin:10px 0}
+  .teamlist li{background:var(--card);border:2px solid var(--gold);border-radius:999px;padding:.4em .9em;font-weight:800;font-size:1rem}
+
+  .qacts{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:14px 0}
 </style>
 </head>
 <body>
 
 <div id="connBar">연결이 끊겼어요 — 다시 연결하는 중…</div>
 <div id="toast"></div>
+<div id="fx" role="status" aria-live="polite"><div class="fx-box"><div class="fx-ico"></div><div class="fx-title"></div><div class="fx-sub"></div></div></div>
 
 <!-- 첫 화면 -->
 <section id="home" class="screen on">
@@ -155,6 +204,7 @@
     <div class="home-btns">
       <button class="btn big" data-go="localSetup">로컬 게임</button>
       <button class="btn big" data-go="onlineSetup">온라인 게임</button>
+      <button class="btn big" data-go="classSetup">🏫 교실 모드</button>
       <button class="btn ghost" data-rules>게임 방법</button>
     </div>
   </div>
@@ -189,7 +239,24 @@
       <div class="field"><label for="onCode">방 코드로 들어가기</label>
         <div class="row"><input type="text" id="onCode" maxlength="4" placeholder="ABCD" style="flex:1;text-transform:uppercase"><button class="btn" id="onJoin">입장</button></div>
       </div>
-      <p class="note">2~6명이 각자 기기로 함께할 수 있어요.</p>
+      <p class="note">2~10명이 각자 기기로 함께할 수 있어요.</p>
+    </div>
+  </div>
+  <footer class="credit">made by m00n</footer>
+</section>
+
+<!-- 교실 설정 (선생님용) -->
+<section id="classSetup" class="screen">
+  <div class="bar"><button class="btn ghost small" data-go="home">← 처음으로</button><span class="sp"></span><button class="btn ghost small" data-rules>게임 방법</button></div>
+  <div class="wrap">
+    <div class="panel">
+      <h2>🏫 교실 모드</h2>
+      <p class="note" style="margin-top:0">전자칠판에 띄워 학급 전체가 함께 하는 모드예요. 진행 방식을 골라 주세요.</p>
+      <div id="csWarn" class="warnbox" hidden>②·③번은 인터넷 연결과 <b>firebaseConfig</b>가 필요해요. ①번 모둠 대항은 그대로 할 수 있어요.</div>
+      <div class="mode-pick" id="csPick"></div>
+      <div id="csOpts"></div>
+      <div class="field"><label>칠판 글씨 크기</label><div class="opt-row" id="csSize"></div></div>
+      <button class="btn big" id="csStart" style="width:100%;margin-top:10px">시작하기</button>
     </div>
   </div>
   <footer class="credit">made by m00n</footer>
@@ -208,6 +275,7 @@
     <span class="logo">힛스터</span>
     <span class="pill" id="gMode"></span>
     <span class="sp"></span>
+    <button class="btn ghost small" id="gSfx" aria-label="효과음 켜기/끄기">🔊</button>
     <button class="btn ghost small" data-rules>방법</button>
     <button class="btn ghost small" id="gExit">나가기</button>
   </div>
@@ -310,7 +378,7 @@ const P_ROOM = 'hitster/rooms', P_PRES = 'hitster/pres', P_CHAT = 'hitster/chat'
     {t:"내가 아니라도", a:"주호", y:2022, l:"JhQUSnaR4MM"},
     {t:"Monologue", a:"테이 (Tei)", y:2022, l:"IeDb7OrnGNE"},
     {t:"LOVE DIVE", a:"IVE (아이브)", y:2022, l:"Y8JFxS1HlDo"},
-    {t:"취중고백", a:"김민석 (멜로망스)", y:2021, l:"xg8hEEz6-mc"},
+    {t:"후라이의 꿈", a:"AKMU (악뮤)", y:2023, l:"kdOzRLaUTGs"},   /* 팝 · 2023-08-21 싱글 'Love Lee' 수록곡 · Official Audio (교실용으로 '취중고백' 대체) */
     {t:"나의 X에게", a:"경서", y:2022, l:"S1JB_T6Fths"},
     {t:"사랑인가 봐", a:"멜로망스", y:2022, l:"UoBsiQW23IY"},
     {t:"봄여름가을겨울 (Still Life)", a:"BIGBANG", y:2022, l:"eN5mG_yMDiM"},
@@ -326,7 +394,7 @@ const P_ROOM = 'hitster/rooms', P_PRES = 'hitster/pres', P_CHAT = 'hitster/chat'
     {t:"Celebrity", a:"아이유 (IU)", y:2021, l:"0-q1KafFCLU"},
     {t:"헤픈 우연", a:"헤이즈 (Heize)", y:2021, l:"oEjfA15DSW8"},
     {t:"Dun Dun Dance", a:"오마이걸", y:2021, l:"g_KSTUDq9NE"},
-    {t:"찐이야", a:"영탁", y:2020, l:"NzBwu7AXF1E"},
+    {t:"찐이야", a:"영탁", y:2020, s:75, l:"NzBwu7AXF1E"},   /* KBS 전국노래자랑 무대 영상 — 앞의 무대 멘트를 건너뛰려고 75초부터 */
     {t:"시작", a:"가호 (Gaho)", y:2020, l:"o99aQZ62nCQ"},
     {t:"아로하", a:"조정석", y:2020, l:"3DOkxQ3HDXE"},
     {t:"이제 나만 믿어요", a:"임영웅", y:2020, l:"sLqZxb4xjJw"},
@@ -338,8 +406,8 @@ const P_ROOM = 'hitster/rooms', P_PRES = 'hitster/pres', P_CHAT = 'hitster/chat'
     {t:"눈누난나", a:"제시 (Jessi)", y:2020, l:"tJQaUW36pMw"},
     {t:"주저하는 연인들을 위해", a:"잔나비", y:2019, l:"GpQ222I1ULc"},
     {t:"사랑에 연습이 있었다면", a:"임재현", y:2018, l:"kXAvbHPdTZ0"},
-    {t:"흔들리는 꽃들 속에서...", a:"장범준", y:2019, l:"YBEUXfT7_48"},
-    {t:"어떻게 이별까지 사랑하겠어...", a:"AKMU (악뮤)", y:2019, l:"m3DZsBw5bnE"},
+    {t:"흔들리는 꽃들 속에서 네 샴푸향이 느껴진거야", a:"장범준", y:2019, l:"YBEUXfT7_48"},
+    {t:"어떻게 이별까지 사랑하겠어, 널 사랑하는 거지", a:"AKMU (악뮤)", y:2019, l:"m3DZsBw5bnE"},
     {t:"오늘도 빛나는 너에게", a:"마크툽 (MAKTUB)", y:2019, l:"kNYA3H1jSSs"},
     {t:"사계 (Four Seasons)", a:"태연 (TAEYEON)", y:2019, l:"4HG_CJzyX6A"},
     {t:"노래방에서", a:"장범준", y:2019, l:"BUzI-awsi1s"},
@@ -358,7 +426,8 @@ const P_ROOM = 'hitster/rooms', P_PRES = 'hitster/pres', P_CHAT = 'hitster/chat'
     {t:"밤편지", a:"아이유 (IU)", y:2017, l:"6744glqD6lk"},
     {t:"나야 나 (PICK ME)", a:"Wanna One", y:2017, l:"NIld_iEc67s"},
     {t:"비도 오고 그래서", a:"헤이즈 (Heize)", y:2017, l:"afxLaQiLu-o"},
-    {t:"이 소설의 끝을 다시...", a:"한동근", y:2014, l:"rzNNIYy-AUM"},
+    {t:"팔레트 (Palette)", a:"아이유 (IU) feat. G-DRAGON", y:2017, l:"d9IxdwEFk1c"},
+    {t:"이 소설의 끝을 다시 써보려 해", a:"한동근", y:2014, l:"rzNNIYy-AUM"},
     {t:"우주를 줄게", a:"볼빨간사춘기", y:2016, l:"9U8uA702xrE"},
     {t:"CHEER UP", a:"트와이스 (TWICE)", y:2016, l:"c7rCyll5AeY"},
     {t:"내가 저지른 사랑", a:"임창정", y:2016, l:"L-2M_-QLs8k"},
@@ -376,10 +445,11 @@ const P_ROOM = 'hitster/rooms', P_PRES = 'hitster/pres', P_CHAT = 'hitster/chat'
     {t:"안동역에서", a:"진성", y:2012, l:"XSmtB5diePU"},
     {t:"강남스타일", a:"싸이 (PSY)", y:2012, l:"9bZkp7q19f0"},
     {t:"벚꽃 엔딩", a:"버스커 버스커", y:2012, l:"tXV7dfvSefo"},
+    {t:"나 혼자 (Alone)", a:"씨스타 (SISTAR)", y:2012, l:"E0ZHXVp_wUE"},
     {t:"너랑 나", a:"아이유 (IU)", y:2011, l:"NJR8Inf77Ac"},
     {t:"가질 수 없는 너", a:"뱅크", y:1995, l:"sho5lLCt0M0"},
     {t:"응급실", a:"izi (이지)", y:2005, l:"pAnK1y7qjuE"},
-    {t:"소주 한 잔", a:"임창정", y:2003, l:"57RdgpX8LD8"},
+    {t:"With Me", a:"휘성 (Wheesung)", y:2003, l:"mbj4uDvyPuo"},   /* 알앤비 · 2003년 발표 · 공식 뮤직비디오 (교실용으로 '소주 한 잔' 대체) — ?check 로 확인 */
 
     // ↓↓↓ 새로 추가된 곡들 (ID 정확도 미검증 — 꼭 점검 모드(?check)로 확인해주세요) ↓↓↓
     {t:"DNA", a:"방탄소년단 (BTS)", y:2017, l:"MBdVXkSdhwU"},
@@ -409,6 +479,7 @@ const P_ROOM = 'hitster/rooms', P_PRES = 'hitster/pres', P_CHAT = 'hitster/chat'
     {t:"Cherry Bomb", a:"NCT 127", y:2017, l:"WkuHLzMMTZM"},
     {t:"박수 (CLAP)", a:"세븐틴 (SEVENTEEN)", y:2017, l:"CyzEtbG-sxY"},
     {t:"Nobody", a:"원더걸스 (Wonder Girls)", y:2008, l:"QZBn1e9pr2Q"},
+    {t:"U-Go-Girl", a:"이효리", y:2008, l:"z246K3KBZjo"},
 
     // ↓↓↓ 세 번째로 추가된 곡들 (ID 미검증) ↓↓↓
     {t:"봄날 (Spring Day)", a:"방탄소년단 (BTS)", y:2017, l:"xEeFrLSkMm8"},
@@ -444,7 +515,7 @@ const P_ROOM = 'hitster/rooms', P_PRES = 'hitster/pres', P_CHAT = 'hitster/chat'
     {t:"Bubble Pop!", a:"현아 (HyunA)", y:2011, l:"bw9CALKOvAI"},
     {t:"한숨 (Breathe)", a:"이하이 (Lee Hi)", y:2016, l:"5iSlfF8TQ9k"},
     {t:"삐딱하게 (CROOKED)", a:"지드래곤 (G-DRAGON)", y:2013, l:"RKhsHGfrFmY"},
-    {t:"나쁜 기집애 (The Baddest Female)", a:"CL", y:2013, l:"7LP4foN3Xs4"},
+    {t:"빠빠빠 (Bar Bar Bar)", a:"크레용팝 (Crayon Pop)", y:2013, l:"yMqL1iWfku4"},   /* 댄스 · 2013년 발표 · 소속사 공식 M/V(안무버전) (교실용으로 '나쁜 기집애' 대체) */
     {t:"특 (S-Class)", a:"스트레이 키즈 (Stray Kids)", y:2023, l:"JsOOis4bBFg"},
     {t:"신메뉴 (God's Menu)", a:"스트레이 키즈 (Stray Kids)", y:2020, l:"TQTlCHxyuu8"},
     {t:"Guerrilla", a:"에이티즈 (ATEEZ)", y:2022, l:"2HcVZm_4qAI"},
@@ -475,7 +546,7 @@ const P_ROOM = 'hitster/rooms', P_PRES = 'hitster/pres', P_CHAT = 'hitster/chat'
     {t:"Girls", a:"에스파 (aespa)", y:2022, l:"dYRITmpFbJ4"},
     {t:"Black Mamba", a:"에스파 (aespa)", y:2020, l:"ZeerrnuLi5E"},
     {t:"Kitsch", a:"아이브 (IVE)", y:2023, l:"pG6iaOMV46I"},
-    {t:"New Jeans", a:"뉴진스 (NewJeans)", y:2023, l:"kcelgrGY1h8"},
+    {t:"New Jeans", a:"뉴진스 (NewJeans)", y:2023, l:"Krr2u8BUtLw"},   /* 공식 MV 는 앞부분 대사가 길어서 공식 음원(NewJeans - Topic)으로 교체 — ?check 로 확인 */
     {t:"Attention", a:"뉴진스 (NewJeans)", y:2022, l:"js1CtxSY38I"},
     {t:"Cookie", a:"뉴진스 (NewJeans)", y:2022, l:"VOmIplFAGeg"},
     {t:"Bubble Gum", a:"뉴진스 (NewJeans)", y:2024, l:"ft70sAYrFyY"},
@@ -486,8 +557,351 @@ const P_ROOM = 'hitster/rooms', P_PRES = 'hitster/pres', P_CHAT = 'hitster/chat'
     {t:"갑자기 분위기 싸해질 필요 없잖아요", a:"스트레이 키즈 (Stray Kids)", y:2018, l:"y289In1OdZI"},
     {t:"Alcohol-Free", a:"트와이스 (TWICE)", y:2021, l:"XA2YEHn-A8Q"},
     {t:"MOONLIGHT SUNRISE", a:"트와이스 (TWICE)", y:2023, l:"cKlEE_EYuNM"},
-    {t:"손오공 (Super)", a:"세븐틴 (SEVENTEEN)", y:2023, l:"-GQg25oP0S4"}
-  ];
+    {t:"손오공 (Super)", a:"세븐틴 (SEVENTEEN)", y:2023, l:"-GQg25oP0S4"},
+    /* ---- 아이돌 밖의 곡 추가 (?check 로 재생·영상 제목 확인 필요) ---- */
+    {t:"킬리만자로의 표범", a:"조용필", y:1985, l:"zbqxZtYB9bg"},
+    {t:"난 알아요", a:"서태지와 아이들", y:1992, l:"s8bGWS50YRc"},
+    {t:"핑계", a:"김건모", y:1993, s:300, l:"t5LwLGNeQr4"},   /* 2집 전곡 음원 영상 — 5분 지점(핑계 시작 4:45) */
+    {t:"카레", a:"노라조", y:2010, l:"VdCCrgemoNU"},
+    /* =====================================================================
+       ▼ 새로 추가한 곡 (아이돌 밖의 장르) — 영상 ID(l)를 채워야 게임에 나옵니다
+       · l:"" (비어 있음)인 곡은 게임에서 자동으로 빠져요. 유튜브 영상 ID를 넣으면 바로 들어와요.
+       · "연도 확인" 표시가 있는 곡은 연도(y)가 확실하지 않으니 꼭 확인하세요.
+       · 인트로·무대 멘트가 긴 영상은 s:초 를 넣어 시작 위치를 조정하세요 (기본 30초).
+       · 영상 ID를 채운 뒤에는 주소 끝에 ?check 를 붙여 재생·영상 제목을 점검하세요.
+       ===================================================================== */
+    /* ---- 옛 가요·트로트·포크 (1960~80년대) ---- */
+    {t:"우리 애인은 올드미스", a:"최희준", y:1960, l:"ifBTBtDV_To"},
+    {t:"노란 샤쓰의 사나이", a:"한명숙", y:1961, l:"DTAg4ntxG3M"},   /* 오아시스레코드 공식 가사영상 */
+    {t:"밤안개", a:"현미", y:1962, l:"eUQC733BgSg"},   /* 오아시스레코드 공식 가사영상 */
+    {t:"영등포의 밤", a:"오기택", y:1963, l:"ntMJfvp0vlI"},   /* 발표년도 1963 확인(부고기사 다수) — 이 영상 제목엔 1964로 표기, ?check 로 확인 */
+    {t:"동백아가씨", a:"이미자", y:1964, l:"dXCLNVHvqQU"},
+    {t:"산 너머 남촌에는", a:"박재란", y:1965, l:"rDyrQZjN7eU"},
+    {t:"울릉도 트위스트", a:"이시스터즈", y:1966, l:"N1NPZ7zog-8"},
+    {t:"돌아가는 삼각지", a:"배호", y:1967, l:"UPlDBTmCFnc"},   /* 나무위키 기준 1967년 작곡·발표 */
+    {t:"커피 한 잔", a:"펄시스터즈", y:1968, l:"c9oZQMB2j14"},
+    {t:"월남에서 돌아온 김상사", a:"김추자", y:1969, l:"dkD29PJ95c0"},
+    {t:"님은 먼 곳에", a:"김추자", y:1970, l:"XTJdiTBPzOc"},
+    {t:"아침 이슬", a:"양희은", y:1971, l:"Gf5WXdsRiJ4"},
+    {t:"님과 함께", a:"남진", y:1972, l:"DmdElFfweMg"},
+    {t:"그대여 변치마오", a:"남진", y:1973, l:"yt1hkFipIMk"},
+    {t:"행복의 나라로", a:"한대수", y:1974, l:"o7tl6fYTyp0"},
+    {t:"이름 모를 소녀", a:"김정호", y:1974, l:"XwdYJAQlIRg"},
+    {t:"해뜰날", a:"송대관", y:1975, l:"Chb5jBVcFcs"},   /* 팬 업로드 가사영상 — ?check 로 확인 */
+    {t:"왜 불러", a:"송창식", y:1975, l:"KsHf6GF39LQ"},
+    {t:"돌아와요 부산항에", a:"조용필", y:1976, l:"ZmJXBcd0lRE"},   /* 1976년 최초 발표 버전 */
+    {t:"아니 벌써", a:"산울림", y:1977, l:"3rw-3id2Zac"},
+    {t:"나성에 가면", a:"세샘트리오", y:1978, l:"6eT7uz-2ZXY"},
+    {t:"제3한강교", a:"혜은이", y:1979, l:"Nj549b_kwsU"},
+    {t:"창밖의 여자", a:"조용필", y:1980, l:"nNMK6rayHvw"},
+    {t:"단발머리", a:"조용필", y:1980, l:"43nmgwdMu54"},   /* KBS미디어 공식 가사비디오 */
+    {t:"잊혀진 계절", a:"이용", y:1982, l:"njgnX8gcgQ4"},
+    {t:"J에게", a:"이선희", y:1984, l:"3M9yteReGaY"},
+    {t:"빙글빙글", a:"나미", y:1984, l:"k-RID0GSl60"},   /* 나무위키 기준 1984-09-05 발매(1985년 차트 정상) */
+    {t:"행진", a:"들국화", y:1985, l:"cG1RKge8Sg8"},
+    {t:"사랑하기 때문에", a:"유재하", y:1987, l:"BegG8WySo4k"},   /* 팬 업로드 가사영상 — ?check 로 확인 */
+    {t:"사랑했어요", a:"김현식", y:1984, l:"rR0Tjrl55B8"},   /* 연도 1987→1984로 정정 (2집 1984.09.20 발매) */
+    {t:"신사동 그 사람", a:"주현미", y:1988, l:"-SLn257bF-4"},
+    {t:"그대에게", a:"무한궤도", y:1988, l:"IwAaH2hV0bg"},
+    {t:"붉은 노을", a:"이문세", y:1988, l:"YPxFfc84GDE"},   /* 1988.09.15 발매 */
+    {t:"호랑나비", a:"김흥국", y:1989, l:"FvRjJJG5RCE"},
+    /* ---- 90년대 (발라드·댄스·록·트로트) ---- */
+    {t:"미소 속에 비친 그대", a:"신승훈", y:1990, l:"k4X0z_LvDDs"},
+    {t:"애모", a:"김수희", y:1990, l:"YqXTCbeBbl8"},   /* 연도 1990(7집)/1991/1993(히트) 자료가 엇갈림 */
+    {t:"춘천 가는 기차", a:"김현철", y:1989, l:"T0Gom_I43-Q"},   /* 연도 1990→1989로 정정 (1989.08 발매) */
+    {t:"보이지 않는 사랑", a:"신승훈", y:1992, l:"CeFMhbE9u3E"},
+    {t:"하여가", a:"서태지와 아이들", y:1993, l:"L-AxO7EPU8c"},
+    {t:"타타타", a:"김국환", y:1991, l:"sLmh3tvPXrg"},   /* 연도 1993→1991로 정정 */
+    {t:"서른 즈음에", a:"김광석", y:1994, l:"8p9QekWxMis"},
+    {t:"늪", a:"조관우", y:1994, l:"97xbKX4OHrA"},   /* 연도 1994/1996 자료가 엇갈림(1집 1994, 1996년 방송 활동) */
+    {t:"오래전 그날", a:"윤종신", y:1993, l:"NUr_3sTMogE"},   /* 연도 1994→1993으로 정정 (3집 The Natural) */
+    {t:"아름다운 구속", a:"김종서", y:1996, l:"IfYGyRFai9M"},   /* 연도 1994→1996으로 정정 */
+    {t:"잘못된 만남", a:"김건모", y:1995, l:"29kdLgJN_Ds"},   /* 팬 업로드 가사영상 — ?check 로 확인 */
+    {t:"찔레꽃", a:"장사익", y:1995, l:"ZBP9T8BXhxw"},
+    {t:"컴백홈 (Come Back Home)", a:"서태지와 아이들", y:1995, l:"q3xy4p2JTfU"},   /* 서태지 공식 채널 업로드 */
+    {t:"검은 고양이 네로", a:"터보", y:1995, l:"FZ-3DYx4lrQ"},   /* 발매 1995.07.01 */
+    {t:"꿍따리 샤바라", a:"클론", y:1996, l:"lJqqvP4lUb8"},
+    {t:"와", a:"이정현", y:1999, l:"N-QqRqISX0k"},   /* 연도 1996→1999로 정정 (Let's Go To My Star 1999-10) */
+    {t:"회상", a:"터보", y:1997, l:"3QN7GSGq0Qg"},   /* 연도 1996→1997로 정정 (3집 Born Again 1997-10-22) */
+    {t:"애송이의 사랑", a:"양파", y:1997, l:"SgNDfunKKg4"},
+    {t:"해변의 여인", a:"쿨", y:1997, l:"x28aE-d2chY"},   /* 연도 1998→1997로 정정 (Summer Story 1997-07-01) */
+    {t:"겨울 이야기", a:"DJ DOC", y:1996, l:"qeraRr1ubvo"},   /* 크라잉넛 말 달리자를 대체 · 3집 1996-01-10 발매 · 공식 Official Audio */
+    {t:"그녀는 예뻤다", a:"박진영", y:1997, l:"P_qB1TtwX5A"},   /* 연도 1999→1997로 정정 */
+    {t:"To Heaven", a:"조성모", y:1998, l:"U3fGhJhGgw4"},   /* 연도 1999→1998로 정정 */
+    {t:"어머님께", a:"god", y:1999, l:"OBERys7Dtt4"},
+    {t:"일탈", a:"자우림", y:1997, l:"f4Vlp0159mg"},   /* 연도 1999→1997로 정정 (Purple Heart 1997) */
+    {t:"신부에게", a:"유리상자", y:1999, l:"KtgEPFh5BXA"},
+    /* ---- 2000년대 (발라드·록·힙합·트로트·인디) ---- */
+    {t:"넌 내게 반했어", a:"노브레인", y:2004, l:"s4ouUGsagaE"},   /* 연도 2000→2004로 정정 (Stand Up Again! 2004.12.02) */
+    {t:"벌써 일년", a:"브라운아이즈", y:2001, l:"gdj6a0hv0Uk"},
+    {t:"순정", a:"코요태", y:1998, l:"CHiizjoys1Q"},   /* 연도 2001→1998로 정정 (1집 1998-12-02 등록 · 1999 활동으로 표기한 자료도 있어 확인 필요) */
+    {t:"챔피언", a:"싸이 (PSY)", y:2002, l:"MSiKm3kZ7No"},
+    {t:"나쁜 남자", a:"비 (Rain)", y:2002, l:"BzfUYR9r8qY"},
+    {t:"보고 싶다", a:"김범수", y:2002, l:"hlx3DZQA5PY"},   /* 천국의 계단 OST(2003-12) 수록본 · 원곡은 3집 2002 — 연도 확인 */
+    {t:"안되나요", a:"휘성", y:2002, l:"B_RhRi3sWYY"},
+    {t:"네버엔딩 스토리", a:"부활", y:2002, l:"yVnw4xrbbiY"},   /* 팬 가사영상 원곡('발매 2002.8' 표기) — ?check 로 확인 */
+    {t:"사랑했나봐", a:"윤도현", y:2005, l:"MDNzHG4DDhE"},   /* 아티스트 "윤도현밴드"→"윤도현"(솔로) 정정, 연도 2002→2005로 정정 (솔로 프로젝트 앨범 Difference) */
+    {t:"10 Minutes", a:"이효리", y:2003, l:"91MtbP4HFPE"},
+    {t:"체념", a:"빅마마", y:2003, l:"XqWQzZESCYw"},   /* 팬 업로드 음원 — ?check 로 확인 */
+    {t:"낭만고양이", a:"체리필터", y:2002, l:"xEEtcrCH5To"},   /* 연도 2003→2002로 정정 (Made In Korea? 2002-08-13) */
+    {t:"어머나", a:"장윤정", y:2004, l:"P3Gde3RwTzA"},
+    {t:"바람이 분다", a:"이소라", y:2004, l:"Ut78DIarILc"},
+    {t:"눈의 꽃", a:"박효신", y:2004, l:"BY4sHNaV4WU"},
+    {t:"사랑 안 해", a:"백지영", y:2006, l:"EAWHtXQpYX4"},   /* 연도 2004→2006으로 정정 (Smile Again 2006-03-30) */
+    {t:"애인 있어요", a:"이은미", y:2005, l:"sQlktamxG-M"},   /* 연도 2004→2005로 정정 (Ma Non Tanto 2005-10-24) · 팬 가사영상 — ?check 로 확인 */
+    {t:"Timeless", a:"SG워너비", y:2004, l:"qqoHyTAFIPs"},
+    {t:"Y (Please Tell Me Why)", a:"프리스타일", y:2004, l:"dYIT_jeUBKg"},
+    {t:"빙고", a:"거북이", y:2004, l:"dRXqAYWZw_c"},   /* 팬 가사영상 · 앨범 2004-11-16 발매(초판 제목 '아싸') — 2004/2005 확인 필요 */
+    {t:"가시", a:"버즈", y:2005, l:"KlIzxf3ViLY"},
+    {t:"정말 사랑했을까", a:"브라운아이드소울", y:2003, l:"NsRHHcTJYUs"},   /* 연도 2005→2003으로 정정 (1집 Soul Free 2003.09.18) */
+    {t:"비밀번호 486", a:"윤하", y:2007, l:"rLyO7A1TCX0"},   /* 연도 2006→2007로 정정 (2007-03-15 발매) */
+    {t:"엄지 척", a:"홍진영", y:2016, l:"eToI-YtTiHM"},   /* 박현빈 샤방샤방(가사에 선정적 표현)을 대체 */
+    {t:"사랑앓이", a:"FT아일랜드", y:2007, l:"gjV7B2VwJM0"},
+    {t:"유혹의 소나타", a:"아이비", y:2007, l:"nb_gSMrnUHg"},   /* 가사영상(released 2007.02.12) — ?check 로 확인 · 선생님 판단으로 포함 */
+    {t:"우산", a:"에픽하이", y:2008, l:"Wbb7fWQjz4c"},
+    {t:"이별택시", a:"김연우", y:2004, l:"Eld7hJkdoXc"},   /* 연도 2008→2004로 정정 (2집 연인 2004-01-06) · 팬 가사영상 — ?check 로 확인 */
+    {t:"전부 너였다", a:"노을", y:2006, l:"pX_Nv6gG6SY"},   /* 연도 2008→2006으로 정정 (2006-02-10) */
+    {t:"감사", a:"김동률", y:2007, l:"oDlLNTwInBM"},   /* 연도 2008→2007로 정정 (Thanks 2007-03-15) */
+    {t:"싸구려 커피", a:"장기하와 얼굴들", y:2008, l:"bL-ueHzY2yM"},
+    {t:"별일 없이 산다", a:"장기하와 얼굴들", y:2009, l:"xqtO-ekXRZw"},
+    /* ---- 2010년대 (밴드·힙합·OST·트로트·국악·동요) ---- */
+    {t:"외톨이야", a:"씨엔블루", y:2010, l:"BRIGlW12qpk"},
+    {t:"아메리카노", a:"10cm", y:2010, l:"tTXl1xJ0de4"},   /* 팬 업로드 가사영상 — ?check 로 확인 */
+    {t:"여러분", a:"윤복희", y:1979, l:"GACp-Wb5Fao"},   /* 임재범 리메이크 대신 원곡으로 · 영상 제목에 (1979) 표기 — 업로더 미상, ?check 로 확인 */
+    {t:"200%", a:"악동뮤지션", y:2014, l:"0Oi8jDMvd_w"},   /* 연도 2012→2014로 정정 */
+    {t:"사랑의 배터리", a:"홍진영", y:2009, l:"qb-eWHxZaGM"},   /* 연도 2012→2009로 정정 */
+    {t:"바람기억", a:"나얼", y:2012, l:"f5ShDNOqq1E"},
+    {t:"아모르 파티", a:"김연자", y:2013, l:"o71z6nDktEI"},
+    {t:"오래된 노래", a:"스탠딩에그", y:2012, l:"NFfPxExTyYA"},   /* 연도 2013→2012로 정정 (2012.09.04 발매) */
+    {t:"양화대교", a:"자이언티", y:2014, l:"wCvUVhG45YU"},
+    {t:"위잉위잉", a:"혁오", y:2014, l:"bVrW1eDMtL8"},   /* 연도 2015→2014로 정정 (앨범 20, 2014-09-18) */
+    {t:"I", a:"태연", y:2015, l:"ShP6KqZVQtM"},
+    {t:"눈사람", a:"정승환", y:2018, l:"5USBozeR4eg"},   /* 연도 2016→2018로 정정 (2018-02-06 발매) */
+    {t:"상어 가족", a:"핑크퐁", y:2016, l:"761ae_KDg_Q"},   /* 핑크퐁 공식 채널 영상 · 검색 표시 업로드일 2016-01-02 (위키백과의 최초 MV 2015-11-25) — 연도 확인 필요 */
+    {t:"Beautiful", a:"크러쉬", y:2016, l:"to_5UOAINLY"},
+    {t:"Stay With Me", a:"찬열, 펀치", y:2016, l:"XRqMn6c0tsU"},
+    {t:"You Are My Everything", a:"거미", y:2016, l:"ToASX6axGuw"},
+    {t:"Instagram", a:"딘", y:2017, l:"lq3NLUN8DDc"},   /* 연도 2016→2017로 정정 (2017-12-26 발매) · Provided to YouTube(UMG) · 선생님 판단으로 포함 */
+    {t:"Square", a:"백예린", y:2019, l:"4iFP_wd6QU8"},   /* 연도 2017→2019로 정정 (앨범 2019-12-10 발매) */
+    {t:"옥탑방", a:"엔플라잉", y:2019, l:"49cyaEDTd5I"},
+    {t:"범 내려온다", a:"이날치", y:2019, l:"t0BHhqw_Ecc"},   /* 영상 공개 2019-09 / 음원 발매 2020-05 — 연도 선택 필요 */
+    {t:"합정역 5번 출구", a:"유산슬", y:2019, l:"i0TatPKl2xM"},
+    /* ---- 2020년대 (트로트·예능) ---- */
+    {t:"테스형!", a:"나훈아", y:2020, l:"6HWxLhoF-40"},
+    {t:"고맙소", a:"조항조", y:2017, l:"gxlYYkKTcU8"},   /* 김호중 리메이크(2020) 대신 원곡으로 · 연도는 나무위키(싱글 2017) 기준 · 다날엔터 공식 영상 2017-08-31 업로드 (다른 사이트에는 2018 표기도 있음) */
+    {t:"진또배기", a:"이찬원", y:2020, l:"LCEyhP6y98o"},   /* 원곡 대신 이찬원 커버로 교체 · 2020년 TV조선 '미스터트롯' 예선 무대 (원곡은 1990, 머루와 다래) */
+    {t:"다시 여기 바닷가", a:"싹쓰리 (SSAK3)", y:2020, l:"ESKfHHtiSjs"},
+    /* ---- 2007~ 보강 ---- */
+    {t:"두 사람", a:"성시경", y:2005, l:"z9q1iOAcSO0"},   /* 연도 2007→2005로 정정 (앨범 2005-04-07) */
+    /* ---- 발라드·밴드 보강 ---- */
+    {t:"너를 위해", a:"임재범", y:2000, l:"nPc6LJZLSXE"},
+    {t:"고백", a:"델리스파이스", y:2003, l:"Wlps3G2RYIU"},
+    {t:"거리에서", a:"성시경", y:2006, l:"mLwfuskNDOo"},
+    {t:"앵콜요청금지", a:"브로콜리너마저", y:2007, l:"OFv9YZ6QftM"},
+    {t:"기억을 걷는 시간", a:"넬 (NELL)", y:2008, l:"VZnfZ14fIig"},
+    {t:"거울", a:"국카스텐", y:2009, l:"nj2b9teoQSY"},
+    {t:"그런 사람 또 없습니다", a:"이승철", y:2009, l:"TV-U45a4Auk"},
+    {t:"안녕이라고 말하지마", a:"다비치", y:2011, l:"CuwRqIzkyOQ"},
+    {t:"귀로", a:"나얼", y:2005, l:"0qaS_-gJlT0"},
+    {t:"날아라 병아리", a:"넥스트 (N.EX.T)", y:1994, l:"CVEtqNGNwzo"},
+    /* ---- 1세대 아이돌 보강 ---- */
+    {t:"전사의 후예", a:"H.O.T.", y:1996, l:"7ggXa28ADLE"},
+    {t:"할 수 있어", a:"NRG", y:1997, l:"5wfqh3YtlEU"},
+    {t:"(Cause) I'm Your Girl", a:"S.E.S.", y:1997, l:"fBge8oUfFwU"},
+    {t:"커플", a:"젝스키스", y:1998, l:"qqkavNXs5u4"},
+    {t:"내 남자친구에게", a:"핑클", y:1998, l:"sEWWvHKG8_s"},
+    {t:"T.O.P", a:"신화", y:1999, l:"T9xBmKPGe1U"},
+    {t:"Get Up", a:"베이비복스", y:1999, l:"uqPkf9SxEY8"},
+    {t:"백전무패", a:"클릭비", y:2001, l:"G9tjIAas2hs"},
+    {t:"추격자 (The Chaser)", a:"인피니트 (INFINITE)", y:2012, l:"wgmSImDoJNg"},
+    /* ---- 1~3세대 아이돌 보강 ---- */
+    // 1세대
+    {t:"학원별곡", a:"젝스키스 (SECHSKIES)", y:1997, l:"BSLgJxFc4UA"},
+    {t:"Blue Rain", a:"핑클 (Fin.K.L)", y:1998, l:"PZ-rMQtWoTc"},
+    // 2세대
+    {t:"Tell Me", a:"원더걸스 (Wonder Girls)", y:2007, l:"BlHv3BbBv6A"},
+    {t:"주문 (MIROTIC)", a:"동방신기 (TVXQ!)", y:2008, l:"HtJS32n6LNQ"},
+    {t:"하루하루 (HARU HARU)", a:"빅뱅 (BIGBANG)", y:2008, l:"8OAQ6RuYFGE"},
+    {t:"소원을 말해봐 (Genie)", a:"소녀시대 (Girls' Generation)", y:2009, l:"6SwiSpudKWI"},
+    {t:"Heartbeat", a:"2PM", y:2009, l:"YhMFInv1Clc"},
+    // 3세대
+    {t:"Call Me Baby", a:"EXO", y:2015, l:"yWfsla_Uh80"},
+    {t:"Dumb Dumb", a:"레드벨벳 (Red Velvet)", y:2015, l:"XGdbaEDVWp0"},
+    {t:"불타오르네 (FIRE)", a:"방탄소년단 (BTS)", y:2016, l:"4ujQOR2DMFM"},
+    {t:"휘파람 (WHISTLE)", a:"블랙핑크 (BLACKPINK)", y:2016, l:"dISNgvVpWlo"},
+    {t:"붐바야 (BOOMBAYAH)", a:"블랙핑크 (BLACKPINK)", y:2016, l:"bwmSjveL3Lc"},
+    {t:"SIGNAL", a:"트와이스 (TWICE)", y:2017, l:"VQtonf1fv_s"},
+    // 연도 균형 보강 (2000·2011·2025)
+    {t:"거짓말", a:"god", y:2000, l:"K057AvbW0PM"},   /* 공식 음원 영상(2000-11-03) */
+    {t:"The Boys", a:"소녀시대 (Girls' Generation)", y:2011, l:"gzWo1I4Scow"},
+    {t:"Golden", a:"HUNTR/X (EJAE, AUDREY NUNA, REI AMI)", y:2025, l:"TuzfXgUpboA"},
+    {t:"빌려온 고양이 (Do the Dance)", a:"아일릿 (ILLIT)", y:2025, l:"RwrZPCKLs2E"},
+    // 연도 균형 보강 2 (2001·2006·2008) — 연도는 나무위키·위키백과·음원 발매일 확인
+    {t:"화장을 고치고", a:"왁스 (WAX)", y:2001, l:"luwdlYsCQ6M"},   /* 공식 MV · 발매 2001-08-09 */
+    {t:"새", a:"싸이 (PSY)", y:2001, l:"qU61Ekm6dMA"},   /* 1집 2001-01 · 팬 업로드 영상이라 재생 안 되면 점검에서 자동 제외됨 */
+    {t:"내 사람 : Partner For Life", a:"SG워너비", y:2006, l:"BCa5sF4QSRA"},   /* 3집 2006-04-08 */
+    {t:"남자를 몰라", a:"버즈 (Buzz)", y:2006, l:"lnoY6MxJGao"},   /* 3집 Perfect 2006-04-24 */
+    {t:"\"O\"-정.반.합.", a:"동방신기 (TVXQ!)", y:2006, l:"NWkS9S8QWm8"},   /* 3집 2006 */
+    {t:"누난 너무 예뻐 (Replay)", a:"샤이니 (SHINee)", y:2008, l:"VTASffPQGhY"},   /* 2008-05 데뷔 */
+    {t:"So Hot", a:"원더걸스 (Wonder Girls)", y:2008, l:"lmun5PO54VE"},   /* 2008-05-22 */
+    /* ---- 장르 보강 (댄스·록·힙합·인디·트로트·발라드 / 80~2020년대) — 영상 ID는 검색으로 찾은 것이라 ?check 로 재생·영상 제목 점검 필요 ---- */
+    {t:"어쩌다 마주친 그대", a:"송골매", y:1982, l:"Jcfi9gOru6k"},   /* 록 · 2집(1982) · KBS미디어 공식 가사비디오 */
+    {t:"리듬 속의 그 춤을", a:"김완선", y:1987, l:"aJZr3Vn61Qg"},   /* 댄스 · 원 발매 1987-05-07 · Provided to YouTube(다날) 2집 재발매 음원 */
+    {t:"담다디", a:"이상은", y:1988, l:"IUWdvonVyCE"},   /* 포크 팝 · 1988 · 팬 가사영상 — ?check 로 확인 */
+    {t:"희망사항", a:"변진섭", y:1989, l:"q8j0bWdKz7Q"},   /* 발라드 · 1989 · 팬 가사영상 — ?check 로 확인 */
+    {t:"나를 돌아봐", a:"듀스 (DEUX)", y:1993, l:"z_F_tQ_GUtU"},   /* 힙합 댄스 · 1집 1993-04-23 · Provided to YouTube(K&C Music) */
+    {t:"100일째 만남", a:"룰라 (Roo'Ra)", y:1994, l:"Gf4IOXP-lZo"},   /* 레게 댄스 · 발매 1994-07 · 팬 가사영상 — ?check 로 확인 */
+    {t:"금지된 사랑", a:"김경호", y:1997, l:"glexbhF11WI"},   /* 헤비 록 · 2집 1997-06-06 · Provided to YouTube(RIAK) */
+    {t:"Tears", a:"소찬휘", y:2000, l:"PRTePL41XJU"},   /* 록 댄스 · First Bridge 2000-03-24 · 팬 가사영상 — ?check 로 확인 (같은 제목의 2015 나는가수다 버전과 혼동 주의) */
+    {t:"Ring My Bell", a:"다이나믹 듀오 (Dynamic Duo)", y:2004, l:"b5OuLld_FrA"},   /* 힙합 · 발매 2004-05 · 가사영상 — ?check 로 확인 */
+    {t:"무조건", a:"박상철", y:2005, l:"G_KNxk_q8PU"},   /* 트로트 · 발매 2005-03-29 (히트는 2000년대 후반) · Official Audio */
+    {t:"Hello", a:"허각", y:2011, l:"yY7dRwJnJZ0"},   /* 발라드 · 1st 미니앨범 2011-09 · 공식 MV — ?check 로 확인 (검색 결과상 시기 확실치 않음) */
+    {t:"EVERYTHING", a:"검정치마 (The Black Skirts)", y:2016, l:"jb1FCdkadlo"},   /* 인디 · 싱글 2016-01-29 (앨범 TEAM BABY 재수록 2017) · Provided to YouTube */
+    {t:"난춘 (亂春)", a:"새소년 (SE SO NEON)", y:2020, l:"KsznX5j2oQ0"},   /* 인디 록 · 싱글 2020-05-10 · 공식 MV */
+    {t:"입춘", a:"한로로 (HANRORO)", y:2022, l:"I0Hu7PRF4j0"},   /* 인디 록 · 2022-03-14 · Provided to YouTube */
+    /* ---- 장르 보강 2 (R&B·OST·힙합·록·트로트·인디) — 마찬가지로 ?check 로 점검 ---- */
+    {t:"말해줘 (Feat. 엄정화)", a:"지누션 (JINUSEAN)", y:1997, l:"3MlKdBKIed0"},   /* 힙합 · 1집 1997-06 · 팬 가사영상 — ?check 로 확인 */
+    {t:"나는 나비", a:"YB (윤도현밴드)", y:2006, l:"LI5jrbYZeOo"},   /* 록 · 'Why be?' 2006-08-10 원곡 · Provided to YouTube (2011 재녹음 버전 아님) */
+    {t:"Nothing Better", a:"정엽 (Brown Eyed Soul)", y:2007, l:"bGZon5xAgpg"},   /* R&B · 브라운아이드소울 2집 2007-10-30 · Provided to YouTube */
+    {t:"Abracadabra", a:"브라운아이드걸스 (Brown Eyed Girls)", y:2009, l:"sJDAXF4pS1A"},   /* 일렉트로 댄스 · Sound G 2009 · Provided to YouTube(Kakao) */
+    {t:"시간을 거슬러", a:"린 (LYn)", y:2012, l:"PWbOGUtCB6w"},   /* 드라마 OST · 해를 품은 달 Part.2 (2012-01) · Provided to YouTube(RIAK) */
+    {t:"나무", a:"카더가든 (Car, the garden)", y:2019, l:"lQcnNPqy2Ww"},   /* 인디 팝 · 2019-04-16 · Provided to YouTube(Kakao) */
+    {t:"엄마 아리랑", a:"송가인", y:2019, l:"Ek3_m9mrHZQ"},   /* 트로트 · 2019 · 1theK 공식 MV(재업로드) — ?check 로 확인 */
+    /* ---- 장르 보강 3 (포크·발라드·댄스) — ?check 로 점검 ---- */
+    {t:"가시나무", a:"시인과 촌장", y:1988, l:"pr_44fA1_6c"},   /* 포크 · 1988-04 · Dreamus 공식 가사영상 */
+    {t:"옛사랑", a:"이문세", y:1991, l:"jdwGke-kWzs"},   /* 발라드 · 7집 1991-09-17 · Provided to YouTube(Genie) */
+    {t:"상상 속의 너", a:"노이즈 (Noise)", y:1995, l:"G2woWlHcsiU"},   /* 댄스 · 3집 1995-05 · 팬 가사영상 — ?check 로 확인 */
+    {t:"거위의 꿈", a:"카니발 (Carnival)", y:1997, l:"ibV8OBDe4aY"},   /* 가요 · 1997 (인순이 리메이크 아님) · 다날 공식 업로드 — ?check 로 확인 */
+    {t:"Poison", a:"엄정화", y:1998, l:"4kBQYiyxjJo"},   /* 댄스 · 4집 Invitation 1998 · 1theK 공식 MV(재업로드) — ?check 로 확인 */
+    /* ---- 장르 보강 4 (70년대 록·90년대 발라드·2020년대 사이키델릭 록) — ?check 로 점검 ---- */
+    {t:"그건 너", a:"이장희", y:1973, l:"bn_cjNCReQo"},   /* 포크 록 · 3집 1973 · RIAK ArtTrack 음원 — ?check 로 확인 */
+    {t:"보랏빛 향기", a:"강수지", y:1990, l:"LCdH_Y_3PFk"},   /* 발라드 · 1990-04 · 팬 가사영상 — ?check 로 확인 */
+    {t:"NO PAIN", a:"실리카겔 (Silica Gel)", y:2022, l:"U31mUH2DnWk"},   /* 사이키델릭 록 · 2022-08-25 · Provided to YouTube(Poclanos) */
+    /* ---- 아까 빼뒀던 곡 복원 — 연도는 나무위키 기준 (어니언스 편지만 나무위키에 연도가 없어 경향신문·한국일보 기사 기준) ---- */
+    {t:"그때 그 사람", a:"심수봉", y:1979, l:"-m2MWuDKUp8"},   /* 트로트 발라드 · 정규 앨범 발매 기준 1979 (나무위키: 1978 작사·작곡, 제2회 MBC 대학가요제 출전) · Provided to YouTube(KBS미디어) 대학가요제 히트곡집 — ?check 로 확인 */
+    {t:"편지", a:"어니언스", y:1973, l:"CcdsUGrD2R4"},   /* 포크 · 1973 첫 독집 수록 (1972 결성) · RIAK ArtTrack — ?check 로 확인 */
+    {t:"그것만이 내 세상", a:"들국화", y:1985, l:"nitddFBQ_Jc"},   /* 록 · 1집 1985 · Dreamus 공식 가사영상의 '풀버전' 링크 — ?check 로 확인 */
+    {t:"낭만에 대하여", a:"최백호", y:1994, l:"RM2D63-EaiM"},   /* 성인 가요 · 나무위키: 1994 (음반 1994-11) · 팬 업로드 음원 — ?check 로 확인 */
+    {t:"사랑은 아무나 하나", a:"태진아", y:2000, l:"tQP-ONLL13U"},   /* 트로트 · 나무위키: 2000 · Provided to YouTube(RIAK) 히트곡 앨범 수록 음원 */
+    {t:"수고했어, 오늘도", a:"옥상달빛", y:2011, l:"PJYn36scRMI"},   /* 인디 팝 · 나무위키: 2011-04-26 정규 1집 '28' · Official Audio */
+    {t:"사랑스러워", a:"김종국", y:2005, l:"USFIA0qvIak"},   /* 댄스 팝 · 나무위키: 정규 3집 2005-07-01 · Provided to YouTube(UMAG) */
+    /* ---- 장르 보강 5 (70·80년대 록/포크·90년대 록/댄스·인디·드라마 OST) — ?check 로 점검 ---- */
+    {t:"미인", a:"신중현과 엽전들", y:1974, l:"Uiql2XJKrqE"},   /* 록 · 나무위키: 1974 데뷔 앨범 수록 · 팬 가사영상 — ?check 로 확인 */
+    {t:"꿈에", a:"조덕배", y:1986, l:"j82mydX2f0g"},   /* 발라드 · 나무위키: 1986 · 팬 가사영상 — ?check 로 확인 (박정현의 '꿈에'와 다른 곡) */
+    {t:"달팽이", a:"패닉 (PANIC)", y:1995, l:"BKLRQcc8eI8"},   /* 얼터너티브 · 나무위키: 1995-11 발매 1집 수록 · 팬 가사영상 — ?check 로 확인 */
+    {t:"정", a:"영턱스클럽 (YTC)", y:1996, l:"UdsNkF7TTdI"},   /* 댄스 · 1집 1996 · YouTube Music 음원(연도는 유튜브 뮤직 표기, 나무위키 미확인) */
+    {t:"들었다 놨다", a:"써니힐 (Sunny Hill) & 데이브레이크", y:2013, l:"MStMdxnrYyY"},   /* 인디 팝 · 2013-04 · 공식 MV (연도는 유튜브 표기, 나무위키 미확인) */
+    {t:"Always", a:"윤미래 (T)", y:2016, l:"i__0VanmURE"},   /* 드라마 OST · 태양의 후예 OST Part.1 (2016-02) · Official Audio (연도는 방영 시기 기준, 나무위키 미확인) */
+    /* ---- 장르 보강 6 (80~90년대 댄스·발라드·팝 / 2010년대 힙합) — ?check 로 점검 ---- */
+    {t:"어젯밤 이야기", a:"소방차", y:1987, l:"2wyk6mnm1FA"},   /* 댄스 · 1집 1987-04 · Official Audio (연도는 유튜브 표기, 나무위키 미확인) */
+    {t:"텅 빈 거리에서", a:"015B (공일오비)", y:1990, l:"4xhoZKk16Q4"},   /* 팝 · 1집 1990-07 (윤종신 보컬) · Provided to YouTube(Danal) */
+    {t:"이 밤이 지나면", a:"임재범", y:1991, l:"kqsZaaoaTDY"},   /* 팝 발라드 · 나무위키: 1991 솔로 데뷔곡 · Provided to YouTube */
+    {t:"이 밤의 끝을 잡고", a:"솔리드 (Solid)", y:1995, l:"Scms-EeULxk"},   /* R&B 발라드 · 나무위키: 1995-03-14 2집 · Official Audio */
+    {t:"All I Wanna Do", a:"박재범 (Jay Park)", y:2016, l:"iHt2L930RTI"},   /* 힙합 R&B · 2016 (앨범 Everything You Wanted 2016-10) · Provided to YouTube (연도는 유튜브 표기, 나무위키 미확인) */
+    /* ---- 장르 보강 7 (80년대 발라드·록·성인가요) — ?check 로 점검 ---- */
+    {t:"종이학", a:"전영록", y:1982, l:"sM91PQgGuVc"},   /* 성인가요 · 나무위키: 1982 발표 (발매 1982-06-28) · KBS미디어 공식 가사영상 */
+    {t:"젊은 그대", a:"김수철", y:1984, l:"6TuKD4JqN_M"},   /* 록 · 1984 · 팬 가사영상 — ?check 로 확인 (나무위키 미확인) */
+    {t:"동행", a:"최성수", y:1987, l:"u9fU0EzFOwE"},   /* 발라드 · 2집 1987-07-10 · Provided to YouTube(RIAK) (연도는 유튜브 표기, 나무위키 미확인) */
+    /* ---- 장르 보강 8 (90년대 발라드·2000년대 록) — ?check 로 점검 ---- */
+    {t:"1994년 어느 늦은 밤", a:"장혜진", y:1994, l:"ioM4SB93tDs"},   /* 발라드 · 나무위키: 3집 Before The Party (1994) 수록 · 팬 업로드 음원 — ?check 로 확인 */
+    {t:"으라차차", a:"럼블피쉬 (Rumble Fish)", y:2005, l:"ucwpn56kiNI"},   /* 록 · 발매 2005-07 · 1theK 공식 MV(재업로드) (연도는 유튜브 표기, 나무위키 미확인) */
+    /* ---- 장르 보강 9 (애시드 재즈·팝 발라드·댄스 팝) — 연도는 유튜브(Provided to YouTube) 표기, 나무위키 미확인 ---- */
+    {t:"습관 (Bye Bye)", a:"롤러코스터 (Roller Coaster)", y:1999, l:"qvh74fT4xYY"},   /* 애시드 재즈 · 1집 '내게로 와' 1999 · Provided to YouTube(Kakao) */
+    {t:"좋은 사람", a:"토이 (Toy) feat. 김형중", y:2001, l:"Cx_dXJn1BwE"},   /* 팝 발라드 · 토이 5집 Fermata 2001-05-10 · Provided to YouTube(Kakao) */
+    {t:"NO.1", a:"보아 (BoA)", y:2002, l:"0bHHPkJIxiU"},   /* 댄스 팝 · 2집 2002-04-12 · Provided to YouTube(SM) */
+    /* ---- 장르 보강 10 ---- */
+    {t:"아파트", a:"윤수일 (윤수일밴드)", y:1982, l:"mK7PZZj1cO4"},   /* AOR·팝 · 나무위키: 1982 발표 (2집 발매 1982-06-30) · 팬 가사영상 — ?check 로 확인 (로제의 'APT.'와 다른 곡) */
+    /* ---- 장르 보강 11 (힙합) — ?check 로 점검 ---- */
+    {t:"Fly", a:"에픽하이 (Epik High) feat. Amin.J", y:2005, l:"sHqLlyBlmQI"},   /* 힙합 · 3집 Swan Songs 타이틀곡 · Provided to YouTube(CJ E&M Music) */
+    {t:"I Don't Care", a:"2NE1", y:2009, l:"ctl6yWe0vwo"},   /* 댄스 · 2009년 발표 · YG 공식 M/V (교실용으로 '죽일 놈' 대체) */
+    {t:"화 (Fire)", a:"매드클라운 (Mad Clown) feat. 진실", y:2015, l:"XzNqcc__uRs"},   /* 힙합/알앤비 · 발매 2015-01-09 · 공식 M/V — ?check 로 확인 */
+    {t:"Aqua Man", a:"빈지노 (Beenzino)", y:2012, l:"08h8u8Z9iJQ"},   /* 힙합 · Provided to YouTube(Genie Music) */
+    /* ---- 장르 보강 12 (알앤비·소울) — ?check 로 점검 ---- */
+    {t:"어떻게 지내 (Fall)", a:"크러쉬 (Crush)", y:2016, l:"v2jEdnznd3A"},   /* 알앤비 · 공식 M/V */
+    /* ---- 장르 보강 13 (트로트) — ?check 로 점검 ---- */
+    {t:"옥경이", a:"태진아", y:1989, l:"jOdPCBuPoI0"},   /* 트로트 · 1989년 MBC 10대 가수가요제 대상 수상곡 · 팬 가사영상 — ?check 로 확인 */
+    {t:"고향역", a:"나훈아", y:1972, l:"IXLNOj2PubU"},   /* 트로트 · 나무위키: 1972년 발매 메가히트곡 · 팬 가사영상 — ?check 로 확인 */
+    /* ---- 장르 보강 14 (시티팝·메탈·블루스록) — ?check 로 점검 ---- */
+    {t:"샴푸의 요정", a:"빛과 소금", y:1990, l:"-uNR1iYunLY"},   /* 시티팝 · 1집 1990.04 · 팬 가사영상 — ?check 로 확인 */
+    {t:"브라보 마이 라이프 (Bravo My Life)", a:"봄여름가을겨울", y:2002, l:"nlI2dsefzZU"},   /* 재즈펑크/시티팝 · 발매 2002 · 공식 4K 리마스터 M/V */
+    {t:"크게 라디오를 켜고", a:"시나위", y:1986, l:"a6BRn1zSzuQ"},   /* 헤비메탈 · 1집 Heavy Metal Sinawe · Provided to YouTube(Mound Media) */
+    {t:"깊은 밤의 서정곡", a:"블랙홀 (Black Hole)", y:1989, l:"TRqu_VlEKOs"},   /* 메탈발라드 · 1집 Miracle 타이틀곡 · 팬 가사영상 — ?check 로 확인 */
+    {t:"코뿔소", a:"한영애", y:1988, l:"IWkxgOetOn4"},   /* 블루스록 · 2집 바라본다 수록 · 팬 업로드 음원 — ?check 로 확인 */
+    /* ---- 500곡 확장 1 (60~70년대 트로트·포크·그룹사운드) — 연도는 나무위키·위키백과·오아시스레코드 표기 기준, ?check 로 점검 ---- */
+    {t:"빨간 구두 아가씨", a:"남일해", y:1963, l:"ap6ughIjIWM"},   /* 트로트 · 1963년 발표 · KBS 가요무대(원가수 무대) — ?check 로 확인 */
+    {t:"보고 싶은 얼굴", a:"현미", y:1964, l:"_MXpfJLL9JE"},   /* 스탠더드 팝 · 1964년 동명 영화 주제가 · 오아시스레코드 공식 채널 */
+    {t:"하숙생", a:"최희준", y:1966, l:"k2tyTKHi-7A"},   /* 스탠더드 팝 · 1966년 영화 '하숙생' 주제가 · 팬 업로드 음원 — ?check 로 확인 */
+    {t:"초우", a:"패티김", y:1966, l:"gAWkKfIJOa8"},   /* 스탠더드 팝 · 1966년 영화 '초우' 주제가 · 팬 업로드 음원 — ?check 로 확인 */
+    {t:"안개", a:"정훈희", y:1967, l:"fFnCV-3JNFA"},   /* 스탠더드 팝 · 1967년 발표 (영화 '안개' 주제가) · 팬 업로드 음원 — ?check 로 확인 */
+    {t:"봄비", a:"박인수", y:1970, l:"V-zMRD-4p1w"},   /* 소울 · 1970년 신중현 작곡 · 팬 업로드 음원 — ?check 로 확인 */
+    {t:"해변으로 가요", a:"키보이스 (Key Boys)", y:1970, l:"DMtUCmez2VE"},   /* 그룹사운드 · 1970년 발표 · RIAK ArtTrack 음원 */
+    {t:"사랑해", a:"라나에로스포", y:1971, l:"oYcmVnrShyM"},   /* 포크 · 1971년 발표 · 오아시스레코드 공식 채널 */
+    {t:"나 그대에게 모두 드리리", a:"이장희", y:1974, l:"PoMwQNIn1R0"},   /* 포크 · 1974년 발표 · RIAK ArtTrack 음원 */
+    {t:"하얀 나비", a:"김정호", y:1974, l:"7x3YHzZO6-M"},   /* 포크 · 1974년 발표 · RIAK ArtTrack 음원 */
+    {t:"고래사냥", a:"송창식", y:1975, l:"VTmIt9nQtzk"},   /* 포크 · 1975년 발표 (영화 '바보들의 행진' 삽입곡) · 팬 가사영상 — ?check 로 확인 */
+    {t:"오동잎", a:"최헌", y:1976, l:"Q_kuARtN57A"},   /* 트로트 고고 · 위키백과: 1976년 발표 · 팬 업로드 음원 — ?check 로 확인 */
+    {t:"가는 세월", a:"서유석", y:1977, l:"QTxu4Sc3qtQ"},   /* 포크 · 1977년 발표 · 팬 업로드 음원 — ?check 로 확인 */
+    {t:"나 어떡해", a:"샌드페블즈", y:1977, l:"8iugw3Kvhi4"},   /* 캠퍼스 록 · 1977년 제1회 MBC 대학가요제 대상곡 · 팬 업로드 음원 — ?check 로 확인 */
+    {t:"내 마음에 주단을 깔고", a:"산울림", y:1978, l:"VmRE1vYr6po"},   /* 사이키델릭 록 · 1978년 3집 · Official Audio */
+    /* ---- 500곡 확장 2 (80년대 발라드·댄스·록·성인가요) — ?check 로 점검 ---- */
+    {t:"연극이 끝난 후", a:"샤프 (Sharp)", y:1980, l:"s3uPXokhpnA"},   /* 캠퍼스 록 · 1980년 MBC 대학가요제 · Official Audio */
+    {t:"아! 대한민국", a:"정수라", y:1983, l:"sk2Bla0vAXM"},   /* 가요 · 1983년 발표 · 팬 가사영상 — ?check 로 확인 */
+    {t:"친구여", a:"조용필", y:1983, l:"-E786QcnEts"},   /* 발라드 · 1983년 5집 수록 · 팬 가사영상 — ?check 로 확인 */
+    {t:"난 아직 모르잖아요", a:"이문세", y:1985, l:"eGqtNu1ChXM"},   /* 발라드 · 1985년 3집 타이틀곡 · 팬 업로드 음원 — ?check 로 확인 */
+    {t:"슬픈 인연", a:"나미", y:1985, l:"4h4ZLDvpwOQ"},   /* 발라드 · 1985년 발표 (일본 원곡 리메이크) · 팬 업로드 음원 — ?check 로 확인 */
+    {t:"사랑으로", a:"해바라기", y:1989, l:"CJjHHI91GQQ"},   /* 포크 발라드 · 1989년 발표 · 팬 가사영상 (교실용으로 '담배가게 아가씨' 대체) — ?check 로 확인 */
+    {t:"사랑밖엔 난 몰라", a:"심수봉", y:1987, l:"sXsW6btD_JA"},   /* 발라드 · 나무위키: 1987년 발표 · Official Audio */
+    {t:"광화문 연가", a:"이문세", y:1988, l:"mezYFe9DLRk"},   /* 발라드 · 1988년 5집 수록 (이영훈 작곡) · 팬 업로드 음원 — ?check 로 확인 */
+    {t:"아름다운 강산", a:"이선희", y:1988, l:"PfAJoK-VhOg"},   /* 록 · 1988년 이선희 리메이크 버전 (원곡 신중현 1972) · 팬 가사영상 — ?check 로 확인 */
+    {t:"무시로", a:"나훈아", y:1988, l:"Dt_GHTSXWXA"},   /* 트로트 · 나무위키: 1988-03-15 '슈퍼스타 나훈아 골든디스크' 수록 · 팬 가사영상 — ?check 로 확인 */
+    {t:"비 오는 날의 수채화", a:"강인원, 권인하, 김현식", y:1989, l:"NIx7I5I9dDY"},   /* 발라드 · 1989년 동명 영화 OST · 팬 업로드 음원 — ?check 로 확인 */
+    /* ---- 500곡 확장 3 (90년대 발라드·댄스·아이돌) — ?check 로 점검 ---- */
+    {t:"사랑했지만", a:"김광석", y:1991, l:"ZZEv8ZB6G_s"},   /* 포크 발라드 · 1991년 2집 수록 · Official Audio (2022 Remastered) */
+    {t:"내 사랑 내 곁에", a:"김현식", y:1991, l:"fnEsPUT3jWI"},   /* 발라드 · 1991년 유작 6집 수록 · Official Audio */
+    {t:"흐린 기억 속의 그대", a:"현진영", y:1992, l:"DBR_PL9URaE"},   /* 뉴잭스윙 · 나무위키: 1992-08 2집 'New Dance 2' · 팬 업로드 원곡 음원 — ?check 로 확인 */
+    {t:"핑계", a:"김건모", y:1993, l:"_UC9gpiOZE0"},   /* 레게 · 1993년 2집 타이틀곡 · 팬 싱크가사 영상 — ?check 로 확인 */
+    {t:"아주 오래된 연인들", a:"015B (공일오비)", y:1993, l:"Uh0AtTa39hY"},   /* 팝 · 1993년 4집 수록 · 공식 M/V */
+    {t:"날개 잃은 천사", a:"룰라 (Roo'Ra)", y:1995, l:"3EYjmyJo8oI"},   /* 댄스 · 1995년 2집 타이틀곡 · 팬 업로드 음원 — ?check 로 확인 */
+    {t:"캔디 (Candy)", a:"H.O.T.", y:1996, l:"K-5ss_cWGSs"},   /* 댄스 · 1996년 1집 수록 · SMTOWN 공식 M/V */
+    {t:"사랑을 위하여", a:"김종환", y:1997, l:"NL-6Grjs6U4"},   /* 발라드 · 1997년 3집 '사랑을 위하여' 타이틀곡 · Official Audio */
+    {t:"그녀와의 이별", a:"김현정", y:1998, l:"T9iV3eBoT0Q"},   /* 댄스 · 1998년 데뷔곡 · 공식 M/V */
+    /* ---- 500곡 확장 4 (2000년대 발라드·아이돌·알앤비) — ?check 로 점검 ---- */
+    {t:"너에게 난, 나에게 넌", a:"자전거 탄 풍경", y:2001, l:"LwuLvRYvlQY"},   /* 포크 · 2001년 1집 수록 (영화 '클래식' 삽입곡으로 재유행) · 팬 가사영상 — ?check 로 확인 */
+    {t:"I Believe", a:"신승훈", y:2001, l:"-UZnpcufkbc"},   /* 발라드 · 2001년 영화 '엽기적인 그녀' OST · 팬 업로드 음원 — ?check 로 확인 */
+    {t:"Perfect Man", a:"신화 (SHINHWA)", y:2002, l:"Lxe9yXVa24Q"},   /* 댄스 · 2002년 5집 타이틀곡 · SMTOWN 공식 리마스터 M/V */
+    {t:"하늘을 달리다", a:"이적", y:2003, l:"HlA_RAiHPig"},   /* 모던 록 · 2003년 3집 타이틀곡 · 팬 업로드 음원 — ?check 로 확인 */
+    {t:"미안해요", a:"거미 (Gummy) feat. T.O.P", y:2003, l:"ERlf_9BW4iA"},   /* 알앤비 · 2003년 1집 타이틀곡 · 공식 M/V */
+    {t:"Hug (포옹)", a:"동방신기 (TVXQ!)", y:2004, l:"xQ635vE2RQI"},   /* 발라드 · 2004년 데뷔 싱글 · SMTOWN 공식 M/V */
+    {t:"내 여자라니까", a:"이승기", y:2004, l:"A57Z7ncYck8"},   /* 발라드 · 2004년 데뷔곡 · 공식 M/V */
+    {t:"인연", a:"이선희", y:2005, l:"E88z9OFe9Pk"},   /* 발라드 · 2005년 영화 '왕의 남자' OST · 공식 M/V */
+    {t:"다행이다", a:"이적", y:2007, l:"Gi2y03MNHgU"},   /* 팝 발라드 · 2007년 4집 수록 · Official Music Video */
+    {t:"나만 바라봐", a:"태양 (TAEYANG)", y:2008, l:"6PEM3tBA4mA"},   /* 알앤비 · 2008년 첫 솔로 미니앨범 타이틀곡 · YG 공식 M/V */
+    {t:"총 맞은 것처럼", a:"백지영", y:2008, l:"uSdlduWm4HM"},   /* 발라드 · 2008년 발표 · 공식 M/V */
+    /* ---- 500곡 확장 5 (2010년대 아이돌·인디·발라드) — ?check 로 점검 ---- */
+    {t:"죽어도 못 보내", a:"2AM", y:2010, l:"hOREkPq1aVQ"},   /* 발라드 · 2010년 발표 · 공식 M/V */
+    {t:"픽션 (Fiction)", a:"비스트 (BEAST)", y:2011, l:"ZAzWT8mRoR0"},   /* 댄스 · 2011년 발표 · Official Music Video */
+    {t:"여수 밤바다", a:"버스커 버스커", y:2012, l:"qcijCmUkqrc"},   /* 인디 팝 · 2012년 1집 수록 · 공식 M/V */
+    {t:"유리구슬 (Glass Bead)", a:"여자친구 (GFRIEND)", y:2015, l:"GU7icQFVzHo"},   /* 댄스 · 2015년 데뷔곡 · 1theK 공식 M/V */
+    {t:"Ah-Choo", a:"러블리즈 (Lovelyz)", y:2015, l:"v7qisJ_KuYI"},   /* 댄스 · 2015년 발표 · Official MV */
+    {t:"꺼내 먹어요", a:"자이언티 (Zion.T)", y:2015, l:"DwO102ffkM0"},   /* 알앤비 · 2015년 발표 · 공식 M/V */
+    {t:"넌 is 뭔들", a:"마마무 (MAMAMOO)", y:2016, l:"QbhmTM1cRro"},   /* 댄스 · 2016년 발표 · RBW 공식 M/V */
+    {t:"아주 NICE", a:"세븐틴 (SEVENTEEN)", y:2016, l:"J-wFp43XOrA"},   /* 댄스 · 2016년 발표 · 1theK 공식 M/V */
+    {t:"롤린 (Rollin')", a:"브레이브걸스 (Brave Girls)", y:2017, l:"aIl0pRlx_M4"},   /* 댄스 · 2017년 발표 (2021년 역주행) · 공식 M/V */
+    {t:"그리워하다", a:"비투비 (BTOB)", y:2017, l:"wDkjWSt3HOM"},   /* 발라드 · 2017년 발표 · Official Music Video */
+    {t:"폰서트", a:"10cm", y:2017, l:"mOo8bVzN9M8"},   /* 인디 팝 · 2017년 정규 '4.0' 수록 · 공식 M/V */
+    /* ---- 500곡 확장 6 (2020년대 · 2024~2025 신곡 보강) — ?check 로 점검 ---- */
+    {t:"Weekend", a:"태연 (TAEYEON)", y:2021, l:"RmuL-BPFi2Q"},   /* 댄스 팝 · 2021년 발표 · SMTOWN 공식 M/V */
+    {t:"HOME SWEET HOME", a:"지드래곤 (G-DRAGON) feat. 태양, 대성", y:2024, l:"fLi0EJfi_vg"},   /* 힙합 · 2024-11 발표 · Official Audio */
+    {t:"Welcome to the Show", a:"DAY6 (데이식스)", y:2024, l:"RowlrvmyFEk"},   /* 밴드 록 · 2024년 발표 · 공식 M/V */
+    {t:"toxic till the end", a:"로제 (ROSÉ)", y:2024, l:"eA0lHNZ1KCA"},   /* 팝 · 2024-12 앨범 'rosie' 수록 · Official Music Video */
+    {t:"청춘만화", a:"이무진", y:2024, l:"1bZNp9d7pLM"},   /* 발라드 · 2024-10 미니 2집 '만화(滿花)' 타이틀곡 · 공식 M/V */
+    {t:"TOO BAD", a:"지드래곤 (G-DRAGON) feat. Anderson .Paak", y:2025, l:"o9DhvbqYzns"},   /* 힙합 · 2025-02 정규 'Übermensch' 타이틀곡 · Official Video */
+    {t:"HOT", a:"르세라핌 (LE SSERAFIM)", y:2025, l:"r9AEGPB6qIU"},   /* 댄스 · 2025년 발표 · OFFICIAL MV */
+    {t:"REBEL HEART", a:"IVE (아이브)", y:2025, l:"g36q0ZLvygQ"},   /* 댄스 · 2025-01 발표 · 공식 M/V */
+    {t:"Drowning", a:"우즈 (WOODZ)", y:2025, l:"YWJZfyxz-b0"},   /* 팝 록 · 2025년 발표 · 1theK 공식 M/V */
+    {t:"Soda Pop", a:"사자보이즈 (Saja Boys)", y:2025, l:"hAyPTJFgFEs"},   /* 애니메이션 '케이팝 데몬 헌터스' OST · 2025년 · Netflix 공식 Lyric Video */
+    {t:"How It's Done", a:"HUNTR/X", y:2025, l:"QGsevnbItdU"},   /* 애니메이션 '케이팝 데몬 헌터스' OST · 2025년 · Sony Animation 공식 Lyric Video */
+  ].filter(s => s.l);   /* 영상 ID(l)가 비어 있는 곡은 아직 준비 중이라 게임에서 뺀다 */
 /* ---------------- 공통 도구 ---------------- */
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -509,6 +923,18 @@ const isFile = location.protocol === 'file:';
 const checkMode = new URLSearchParams(location.search).has('check');
 
 /* ---------------- 상태 ---------------- */
+/* 교실 모드 — CLASS 가 있으면 전자칠판용 화면.
+   kind: 'team'   모둠 대항 (칠판 하나로만)
+         'device' 칠판 + 모둠 기기 (칠판은 음악·타임라인만 보여주는 관전 화면)
+         'solo'   칠판 + 개인 기기 (device 와 같은 방식, 참가 단위만 개인) */
+let CLASS = null;
+let isBoard = false;    // 이 기기가 전자칠판(진행 화면)인가
+const quietMode = () => !!(RD && RD.classMode && !isBoard);   // 교실 모드에서 학생 기기는 소리를 내지 않는다
+function setBoardView(on, px){
+  const h = document.documentElement;
+  h.classList.toggle('board', !!on);
+  h.style.fontSize = on ? (px || 22) + 'px' : '';
+}
 let MODE = null;        // 'local' | 'online'
 let G = null;           // 게임 상태
 let ME = -1;            // 온라인에서 내 자리 번호
@@ -529,20 +955,39 @@ function persistBad(){ store.set(BAD_KEY, JSON.stringify([...badIds])); }
 const WIN_CARDS=10, START_TOKENS=2, MAX_TOKENS=5;
 const COST_SKIP=1, COST_CHALLENGE=1, COST_GRAB=3;
 const SONG = i => initialSongData[i];
+/* 목표 카드 수는 판마다 다를 수 있다 (교실 모드에서 5·7·10장 중 고름) */
+const winOf = s => (s && s.win) || WIN_CARDS;
+/* 카훗식 점수 (교실 개인전에서만 켠다) — 맞히면 기본 점수 + 빨리 놓을수록 보너스 */
+const PT_HIT=100, PT_BONUS=50, PT_CLAIM=50, PT_CHAL=100, PT_SPAN=45000;
+function speedPts(s){
+  if(!s.turnAt || !s.placeAt || s.placeAt < s.turnAt) return 0;
+  return Math.round(PT_BONUS * Math.max(0, Math.min(1, 1 - (s.placeAt - s.turnAt)/PT_SPAN)));
+}
+/* 라운드가 끝났을 때 이긴 사람 고르기 */
+function bestOf(s){
+  if(!s.players.length) return null;
+  const rank = s.players.map((p,i)=>({p,i})).sort((a,b) => s.pts
+    ? ((b.p.score|0)-(a.p.score|0) || b.p.cards.length-a.p.cards.length)
+    : (b.p.cards.length-a.p.cards.length || b.p.tokens-a.p.tokens));
+  return rank[0].i;
+}
 
 function toArr(x){ if(!x) return []; if(Array.isArray(x)) return x.filter(v=>v!=null); return Object.keys(x).sort((a,b)=>a-b).map(k=>x[k]); }
 /* RTDB는 빈 배열·null을 지우므로 다시 채워 넣는다 */
 function norm(s){
-  s.players = toArr(s.players).map(p=>({ id:p.id, name:p.name, cards:toArr(p.cards), tokens:p.tokens|0 }));
+  s.players = toArr(s.players).map(p=>({ id:p.id, name:p.name, cards:toArr(p.cards), tokens:p.tokens|0, score:p.score|0 }));
   s.deck = toArr(s.deck);
   s.passed = toArr(s.passed);
   if(s.pending==null) s.pending=null;
   if(s.pos==null) s.pos=null;
-  if(s.cpos==null) s.cpos=null;
-  if(s.challenger==null) s.challenger=null;
+  /* 도전자 목록 — 원작처럼 여러 명이 서로 다른 자리에 도전할 수 있다 */
+  s.chals = toArr(s.chals).map(c => ({ by:c.by|0, pos:c.pos|0 }));
+  delete s.challenger; delete s.cpos;
   if(s.winner==null) s.winner=null;
   if(!s.last) s.last=null;
-  s.seq=s.seq|0; s.turn=s.turn|0; s.placer=s.placer|0;
+  s.seq=s.seq|0; s.turn=s.turn|0; s.placer=s.placer|0; s.win=(s.win|0)||WIN_CARDS;
+  s.pts=!!s.pts; s.gmode=(s.gmode==='rounds')?'rounds':'cards';
+  s.rounds=s.rounds|0; s.left=s.left|0; s.turnAt=s.turnAt|0; s.placeAt=s.placeAt|0;
   if(s.claim===undefined) s.claim=null;
   if(s.claim && typeof s.claim==='object') s.claim={ ti:s.claim.ti||'', ar:s.claim.ar||'' };
   if(s.judge==null) s.judge=null;
@@ -553,13 +998,19 @@ function shuffled(){
   for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [idx[i],idx[j]]=[idx[j],idx[i]]; }
   return idx;
 }
-function newGame(list){
+/* opt = { win, pts, gmode:'cards'|'rounds', rounds, now } */
+function newGame(list, opt){
+  opt = opt || {};
   const deck = shuffled();
-  const players = list.map(p => ({ id:p.id, name:p.name, cards:[deck.pop()], tokens:START_TOKENS }));
+  const players = list.map(p => ({ id:p.id, name:p.name, cards:[deck.pop()], tokens:START_TOKENS, score:0 }));
+  const rounds = Math.max(1, opt.rounds|0);
   return norm({
-    gameId: Math.random().toString(36).slice(2,9), seq:0,
+    gameId: Math.random().toString(36).slice(2,9), seq:0, win: (opt.win|0) || WIN_CARDS,
+    pts: !!opt.pts, gmode: (opt.gmode === 'rounds') ? 'rounds' : 'cards', rounds,
+    left: (opt.gmode === 'rounds') ? rounds * list.length : 0,
+    turnAt: opt.now || 0, placeAt: 0,
     players, deck, turn:0, placer:0, pending:deck.pop(),
-    phase:'place', pos:null, cpos:null, challenger:null, passed:[], claim:null, judge:null,
+    phase:'place', pos:null, chals:[], passed:[], claim:null, judge:null,
     last:null, winner:null
   });
 }
@@ -678,41 +1129,53 @@ function finish(s){
   const song = SONG(s.pending);
   const A = s.players[s.placer];
   const okA = fits(yearsOf(A), s.pos, song.y);
-  let okC=false;
-  if(s.challenger!=null) okC = fits(yearsOf(s.players[s.challenger]), s.cpos, song.y);
+  /* 도전자들은 차례인 사람의 카드 줄에서 (서로 다른) 자리를 고른다.
+     먼저 도전한 사람이 앞에 있으므로, 맞는 자리를 고른 사람 중 가장 먼저 도전한 사람이 가져간다 */
+  const chals = toArr(s.chals);
+  const hit = chals.find(c => s.players[c.by] && fits(yearsOf(A), c.pos, song.y));
+  const nameOf = c => (s.players[c.by] && s.players[c.by].name) || '';
 
-  let msg='', winner=null, at=null;
+  let msg='', winner=null, at=null, kind='bad';
   if(okA){
-    A.cards.splice(s.pos,0,s.pending); winner=s.placer; at=s.pos;
+    A.cards.splice(s.pos,0,s.pending); winner=s.placer; at=s.pos; kind='ok';
     msg = `⭕ ${A.name} 정답!`;
-    if(s.challenger!=null){ s.players[s.challenger].tokens--; msg += ` ${s.players[s.challenger].name} 도전 실패 🪙-1`; }
-  } else if(s.challenger!=null && okC){
-    const C = s.players[s.challenger];
-    C.cards.splice(s.cpos,0,s.pending); winner=s.challenger; at=s.cpos;
-    msg = `🔥 ${A.name} 실패! ${C.name}이(가) 카드를 가져갑니다`;
+    if(s.pts){ const g = PT_HIT + speedPts(s); A.score = (A.score|0) + g; msg += ` +${g}점`; }
+    if(chals.length) msg += ` · ${chals.map(nameOf).join(', ')} 도전 실패 🪙-${COST_CHALLENGE}`;
+  } else if(hit){
+    const C = s.players[hit.by];
+    /* 맞히면 카드는 도전자 자신의 카드 줄에 연도 순서대로 들어간다 */
+    let cat = yearsOf(C).findIndex(y => y > song.y);
+    if(cat < 0) cat = C.cards.length;
+    C.cards.splice(cat,0,s.pending); winner=hit.by; at=cat; kind='take';
+    C.tokens = Math.min(MAX_TOKENS, C.tokens + COST_CHALLENGE);   // 원작: 도전에 성공하면 낸 토큰을 돌려받는다
+    msg = `🔥 ${A.name} 실패! ${C.name}이(가) 카드를 가져갑니다 🪙되돌려받음`;
+    if(s.pts){ C.score = (C.score|0) + PT_CHAL; msg += ` +${PT_CHAL}점`; }
+    const lost = chals.filter(c => c !== hit).map(nameOf);
+    if(lost.length) msg += ` · ${lost.join(', ')} 도전 실패 🪙-${COST_CHALLENGE}`;
   } else {
     msg = `❌ ${A.name} 실패 — 카드는 버립니다`;
-    if(s.challenger!=null){ s.players[s.challenger].tokens--; msg += ` (${s.players[s.challenger].name} 도전도 실패 🪙-1)`; }
+    if(chals.length) msg += ` (${chals.map(nameOf).join(', ')} 도전도 실패)`;
   }
   /* 제목·가수를 맞히면 카드를 틀리게 놓아도 토큰을 받는다 (카드 결과와 별개) */
   s.judge = null;
   if(s.claim === true){
     /* 로컬: 소리 내어 말한 것을 다른 사람들이 인정해 준다 */
-    if(s.players.length < 2){ A.tokens = Math.min(MAX_TOKENS, A.tokens+1); msg += ` · 제목·가수 정답 🪙+1`; }
+    if(s.players.length < 2){ A.tokens = Math.min(MAX_TOKENS, A.tokens+1); if(s.pts) A.score=(A.score|0)+PT_CLAIM; msg += ` · 제목·가수 정답 🪙+1`; }
     else s.judge = s.placer;
   } else if(s.claim && typeof s.claim === 'object'){
     /* 온라인: 적어 낸 답을 바로 채점 */
     const okT = matchOne(s.claim.ti, titleForms(song.t));
     const okAr = matchOne(s.claim.ar, artistForms(song.a));
-    if(okT && okAr){ A.tokens = Math.min(MAX_TOKENS, A.tokens+1); msg += ` · ${A.name} 제목·가수 정답 🪙+1`; }
+    if(okT && okAr){ A.tokens = Math.min(MAX_TOKENS, A.tokens+1); if(s.pts){ A.score=(A.score|0)+PT_CLAIM; } msg += ` · ${A.name} 제목·가수 정답 🪙+1${s.pts?` +${PT_CLAIM}점`:''}`; }
     else if(okT || okAr) msg += ` · ${A.name} ${okT?'제목':'가수'}만 정답 (둘 다 맞혀야 🪙+1)`;
     else if(nk(s.claim.ti) || nk(s.claim.ar)) msg += ` · ${A.name} 제목·가수 오답`;
   }
 
   s.seq++;
-  s.last = { seq:s.seq, msg, song:s.pending, winner, at };
+  s.last = { seq:s.seq, msg, song:s.pending, winner, at, kind };
   s.phase = 'show';
-  if(winner!=null && s.players[winner].cards.length >= WIN_CARDS){ s.phase='over'; s.winner=winner; }
+  /* 라운드제에서는 카드 수로 끝내지 않는다 (정해진 차례를 다 돌면 끝) */
+  if(s.gmode !== 'rounds' && winner!=null && s.players[winner].cards.length >= winOf(s)){ s.phase='over'; s.winner=winner; }
   return s;
 }
 
@@ -722,7 +1185,8 @@ function apply(s, a){
       if(s.phase!=='place') throw new Error('지금은 놓을 수 없어요');
       if(a.by!==s.turn) throw new Error('지금은 내 차례가 아니에요');
       s.pos = a.pos; s.claim = (a.claim === undefined) ? null : a.claim; s.placer = s.turn;
-      if(eligible(s).length){ s.phase='ask'; s.passed=[]; return s; }
+      s.placeAt = a.now || 0;                       // 얼마나 빨리 놓았는지 (점수 보너스용)
+      if(eligible(s).length){ s.phase='ask'; s.passed=[]; s.chals=[]; return s; }
       return finish(s);
     }
     case 'pass': {
@@ -735,18 +1199,19 @@ function apply(s, a){
       if(s.phase!=='ask') return s;
       return finish(s);
     }
+    /* 도전 = 자리까지 정해서 한 번에 낸다. 여러 명이 서로 다른 자리에 도전할 수 있다 */
     case 'challenge': {
       if(s.phase!=='ask') throw new Error('지금은 도전할 수 없어요');
       if(a.by===s.placer) throw new Error('자기 차례에는 도전할 수 없어요');
+      if(s.chals.some(c => c.by === a.by)) throw new Error('이미 도전했어요');
       if(s.players[a.by].tokens < COST_CHALLENGE) throw new Error('토큰이 없어요');
-      s.challenger = a.by; s.phase='challenge';
+      if(a.pos === s.pos) throw new Error('차례인 사람이 놓은 자리에는 놓을 수 없어요');
+      if(s.chals.some(c => c.pos === a.pos)) throw new Error('이미 다른 사람이 고른 자리예요');
+      s.players[a.by].tokens -= COST_CHALLENGE;   // 도전하는 순간 토큰을 낸다 (성공하면 돌려받는다)
+      s.chals.push({ by:a.by, pos:a.pos });
+      if(!s.passed.includes(a.by)) s.passed.push(a.by);
+      if(eligible(s).every(i => s.passed.includes(i))) return finish(s);
       return s;
-    }
-    case 'cplace': {
-      if(s.phase!=='challenge') throw new Error('지금은 놓을 수 없어요');
-      if(a.by!==s.challenger) throw new Error('도전한 사람만 놓을 수 있어요');
-      s.cpos = a.pos;
-      return finish(s);
     }
     /* 게임 도중에 나가기 — 남은 사람들이 이어서 한다 */
     case 'quit': {
@@ -762,16 +1227,19 @@ function apply(s, a){
       const dec = v => (v == null ? null : (v > i ? v - 1 : v));
       const wasShow = (s.phase === 'show');
       const turnGone = (s.turn === i) || (s.placer === i);
-      const chalGone = (s.challenger === i);
-      s.challenger = chalGone ? null : dec(s.challenger);
+      s.chals = toArr(s.chals).filter(c => c.by !== i).map(c => ({ by:dec(c.by), pos:c.pos }));
       s.judge = (s.judge === i) ? null : dec(s.judge);
       s.passed = toArr(s.passed).filter(v => v !== i).map(dec);
       s.turn = (s.turn === i) ? (i % n) : dec(s.turn);
       s.placer = (s.placer === i) ? s.turn : dec(s.placer);
 
       if(turnGone){
-        /* 차례인 사람이 나갔으면 다음 사람부터 다시 */
-        s.placer = s.turn; s.pos=null; s.cpos=null; s.challenger=null; s.passed=[];
+        /* 차례인 사람이 나갔으면 다음 사람부터 다시 — 도전이 취소되니 낸 토큰은 돌려준다 */
+        s.chals.forEach(c => {
+          const cc = s.players[c.by];
+          if(cc) cc.tokens = Math.min(MAX_TOKENS, cc.tokens + COST_CHALLENGE);
+        });
+        s.placer = s.turn; s.pos=null; s.chals=[]; s.passed=[];
         s.claim=null; s.judge=null; s.last=null;
         if(wasShow || s.pending==null){
           if(!s.deck.length){ s.phase='over'; s.winner=null; return s; }
@@ -780,7 +1248,6 @@ function apply(s, a){
         s.phase = 'place';
         return s;
       }
-      if(s.phase === 'challenge' && chalGone){ return finish(s); }
       if(s.phase === 'ask'){
         const el = eligible(s);
         if(!el.length || el.every(k => s.passed.includes(k))) return finish(s);
@@ -791,7 +1258,7 @@ function apply(s, a){
       if(s.phase!=='show' || s.judge==null) return s;
       if(a.by!=null && a.by>=0 && a.by===s.judge) throw new Error('본인은 인정할 수 없어요');
       const A2 = s.players[s.judge];
-      if(a.ok){ A2.tokens = Math.min(MAX_TOKENS, A2.tokens+1); if(s.last) s.last.msg += ` · ${A2.name} 제목·가수 정답 🪙+1`; }
+      if(a.ok){ A2.tokens = Math.min(MAX_TOKENS, A2.tokens+1); if(s.pts) A2.score=(A2.score|0)+PT_CLAIM; if(s.last) s.last.msg += ` · ${A2.name} 제목·가수 정답 🪙+1${s.pts?` +${PT_CLAIM}점`:''}`; }
       else if(s.last) s.last.msg += ` · ${A2.name} 제목·가수는 못 맞혔어요`;
       s.judge = null; s.claim = null; s.seq++;
       return s;
@@ -819,14 +1286,13 @@ function apply(s, a){
       if(pos < 0) pos = me.cards.length;
       me.cards.splice(pos, 0, s.pending);
       s.seq++;
-      s.last = { seq:s.seq, msg:`🎁 ${me.name}이(가) 토큰 ${COST_GRAB}개로 카드를 받았어요`, song:s.pending, winner:s.turn, at:pos };
+      s.last = { seq:s.seq, msg:`🎁 ${me.name}이(가) 토큰 ${COST_GRAB}개로 카드를 받았어요`, song:s.pending, winner:s.turn, at:pos, kind:'grab' };
       s.phase = 'show';
-      if(me.cards.length >= WIN_CARDS){ s.phase='over'; s.winner=s.turn; }
+      if(s.gmode !== 'rounds' && me.cards.length >= winOf(s)){ s.phase='over'; s.winner=s.turn; }
       return s;
     }
     /* 재생이 안 되는 영상은 값 없이 다른 곡으로 교체 */
     case 'swap': {
-      if(s.phase!=='place' && s.phase!=='ask' && s.phase!=='challenge') return s;
       if(s.phase!=='place') return s;
       if(!s.deck.length) throw new Error('남은 곡이 없어요');
       s.pending = s.deck.shift();
@@ -835,11 +1301,17 @@ function apply(s, a){
     }
     case 'next': {
       if(s.phase!=='show') return s;
+      /* 라운드제: 정해진 차례를 다 돌면 최고 점수인 사람이 이긴다 */
+      if(s.gmode === 'rounds'){
+        s.left = (s.left|0) - 1;
+        if(s.left <= 0){ s.phase='over'; s.winner=bestOf(s); s.last=null; return s; }
+      }
       s.turn = (s.turn+1) % s.players.length;
-      s.placer = s.turn; s.challenger=null; s.pos=null; s.cpos=null;
+      s.placer = s.turn; s.pos=null; s.chals=[];
       s.passed=[]; s.claim=null; s.judge=null; s.last=null;
-      if(!s.deck.length){ s.phase='over'; s.winner=null; return s; }
+      if(!s.deck.length){ s.phase='over'; s.winner=bestOf(s); return s; }
       s.pending = s.deck.pop();
+      s.turnAt = a.now || 0; s.placeAt = 0;
       s.phase = 'place';
       return s;
     }
@@ -949,19 +1421,93 @@ function onYtErr(e){
 }
 
 /* =========================================================
+   정답·오답 알림 (팝업 + 효과음) — 소리는 코드로 만들어서 파일이 따로 필요 없음
+   ========================================================= */
+let sfxOn = store.get('ht_sfx') !== '0';
+let actx = null, fxKey = null, fxT1 = null, fxT2 = null;
+function audioCtx(){
+  if(!actx){
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if(!AC) return null;
+    try{ actx = new AC(); }catch(e){ return null; }
+  }
+  if(actx.state === 'suspended') actx.resume().catch(()=>{});
+  return actx;
+}
+function tone(freq, t0, dur, type, vol, slideTo){
+  const o = actx.createOscillator(), g = actx.createGain();
+  o.type = type; o.frequency.setValueAtTime(freq, t0);
+  if(slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t0 + dur);
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.exponentialRampToValueAtTime(vol, t0 + 0.02);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  o.connect(g); g.connect(actx.destination);
+  o.start(t0); o.stop(t0 + dur + 0.05);
+}
+function playSfx(kind){
+  if(!sfxOn) return;
+  const c = audioCtx(); if(!c) return;
+  const t = c.currentTime + 0.03;
+  try{
+    if(kind === 'ok' || kind === 'grab'){          // 띠리링~ 올라가는 소리
+      [523.25, 659.25, 783.99, 1046.5].forEach((f,i) => tone(f, t + i*0.09, 0.3, 'triangle', 0.22));
+    } else if(kind === 'take'){                    // 도전 성공 팡파르
+      [392, 523.25, 659.25, 783.99].forEach((f,i) => tone(f, t + i*0.08, 0.2, 'square', 0.09));
+      [523.25, 659.25, 783.99, 1046.5].forEach(f => tone(f, t + 0.36, 0.55, 'triangle', 0.16));
+    } else {                                       // 뿌우~ 내려가는 소리
+      tone(196, t, 0.3, 'sawtooth', 0.14, 165);
+      tone(147, t + 0.28, 0.55, 'sawtooth', 0.14, 98);
+    }
+  }catch(e){}
+}
+function fxInfo(kind, last){
+  const nm = i => (i != null && G.players[i] && G.players[i].name) || '';
+  if(kind === 'ok')   return { ico:'⭕', title:'정답!',      sub: nm(G.placer) + '님이 맞혔어요' };
+  if(kind === 'take') return { ico:'🔥', title:'도전 성공!', sub: nm(last.winner) + '님이 카드를 가져가요' };
+  if(kind === 'grab') return { ico:'🎁', title:'카드 획득',  sub: nm(last.winner) + '님이 토큰 ' + COST_GRAB + '개로 받았어요' };
+  return { ico:'❌', title:'오답!', sub: nm(G.placer) + '님 — 카드는 버려요' };
+}
+function resultFx(){
+  if(!G || !G.last || (G.phase !== 'show' && G.phase !== 'over')) return;
+  const key = G.gameId + ':' + G.last.seq;
+  if(fxKey === key) return;            // 같은 결과로 화면만 다시 그릴 땐 한 번만
+  fxKey = key;
+  const last = G.last;
+  const kind = last.kind || (last.winner == null ? 'bad' : (last.winner === G.placer ? 'ok' : 'take'));
+  const info = fxInfo(kind, last), box = $('#fx');
+  box.querySelector('.fx-ico').textContent = info.ico;
+  box.querySelector('.fx-title').textContent = info.title;
+  box.querySelector('.fx-sub').textContent = info.sub;
+  clearTimeout(fxT1); clearTimeout(fxT2);
+  box.className = kind;                // ok / take / bad / grab
+  if(kind === 'grab') box.className = 'ok';
+  void box.offsetWidth;                // 애니메이션 다시 시작
+  box.classList.add('on');
+  fxT1 = setTimeout(() => box.classList.add('leave'), 1550);
+  fxT2 = setTimeout(() => { box.className = ''; }, 1850);
+  playSfx(kind);
+}
+function paintSfx(){ const b = $('#gSfx'); b.textContent = sfxOn ? '🔊' : '🔇'; b.title = sfxOn ? '효과음 끄기' : '효과음 켜기'; }
+$('#gSfx').onclick = () => { sfxOn = !sfxOn; store.set('ht_sfx', sfxOn ? '1' : '0'); paintSfx(); if(sfxOn) playSfx('ok'); };
+paintSfx();
+/* 폰에서는 화면을 한 번 눌러야 소리가 열리므로, 첫 터치 때 미리 열어 둔다 */
+document.addEventListener('pointerdown', () => { if(sfxOn) audioCtx(); }, { passive:true });
+
+/* =========================================================
    게임 화면
    ========================================================= */
 let pendEl = null, nextTimer = null;
 /* 제목·가수 맞히기 — 로컬은 '말했어요' 선언, 온라인은 직접 입력 */
 let sayOn = false, ansT = '', ansA = '', ansFor = null;
+/* 지금 이 기기에서 도전 자리를 고르고 있는 사람 (로컬은 자리 번호, 온라인은 나) */
+let chalPick = null;
 function resetAnswer(){ sayOn=false; ansT=''; ansA=''; }
 
-const viewOf = s => (s.phase==='challenge') ? s.challenger
-                  : (s.phase==='show' && s.last && s.last.winner!=null) ? s.last.winner
-                  : s.placer;
+const viewOf = s => (s.phase==='show' && s.last && s.last.winner!=null) ? s.last.winner
+                  : s.placer;      // 도전 중에도 차례인 사람의 카드 줄을 본다
 function iAct(s){
   if(s.phase==='place')     return MODE==='local' ? true : ME===s.turn;
-  if(s.phase==='challenge') return MODE==='local' ? true : ME===s.challenger;
+  if(s.phase==='ask')       return chalPick != null;   // 도전 자리를 고르는 중
   return false;
 }
 function makeCard(idx, revealed){
@@ -973,7 +1519,10 @@ function makeCard(idx, revealed){
   el.songIdx = idx;
   el.querySelector('.info-text').textContent = revealed ? (sg.a + ' - ' + sg.t) : '? ? ? - ? ? ?';
   el.querySelector('.year-tag').textContent = sg.y;
-  btnOf(el).onclick = ev => { ev.stopPropagation(); playCard(el); };
+  /* 칠판+모둠기기 모드에서 학생 기기는 소리를 내지 않는다 (칠판에서만 들려줌) */
+  if(quietMode() && !revealed){ btnOf(el).textContent = '🔇 칠판에서'; btnOf(el).disabled = true; btnOf(el).style.opacity = '.5'; }
+  else if(quietMode()){ btnOf(el).remove(); }
+  else btnOf(el).onclick = ev => { ev.stopPropagation(); playCard(el); };
   return el;
 }
 let tlSortable = null;
@@ -992,18 +1541,40 @@ function renderTimeline(){
   const keepIdx = playingIdx, keepHeard = pendEl && pendEl.dataset.heard === '1';
   tl.innerHTML = ''; pendEl = null;
 
+  const inPlay = s.pending!=null && (s.phase==='place' || s.phase==='ask');
+  if(inPlay){
+    pendEl = makeCard(s.pending, false);
+    if(!iAct(s)) pendEl.classList.add('nodrag', 'locked');
+    if(keepHeard && keepIdx === s.pending) pendEl.dataset.heard = '1';
+  }
+  /* 도전을 물어보는 동안: 차례인 사람이 놓은 자리와, 다른 도전자가 이미 고른 자리를 표시한다.
+     자리를 고르는 중인 사람에게는 그 자리들이 '여기는 안 돼요' 표시로 바뀐다 */
+  const showAt = (s.phase==='ask') && s.pos!=null;
+  let pendPlaced = false;
+  const mark = (cls, text) => { const m = document.createElement('div'); m.className = cls; m.textContent = text; tl.appendChild(m); };
+  const nameAt = k => (s.players[k] && s.players[k].name) || '';
+  const markHere = i => {
+    if(!showAt) return;
+    if(i === s.pos){
+      if(chalPick == null){ tl.appendChild(pendEl); pendPlaced = true; }
+      else mark('pmark', '📍 ' + nameAt(s.placer) + '님이 놓은 자리 (여기는 안 돼요)');
+    }
+    toArr(s.chals).filter(c => c.pos === i).forEach(c => {
+      mark('pmark chal', '🔥 ' + nameAt(c.by) + '님이 고른 자리' + (chalPick != null ? ' (여기는 안 돼요)' : ''));
+    });
+  };
+
   p.cards.forEach((idx, i) => {
+    markHere(i);
     const el = makeCard(idx, true);
     if(s.phase==='show' && s.last && s.last.winner===v && s.last.at===i)
       el.classList.add(s.last.winner===s.placer ? 'correct' : 'taken');
     tl.appendChild(el);
   });
+  markHere(p.cards.length);
 
-  if(s.pending!=null && (s.phase==='place' || s.phase==='ask' || s.phase==='challenge')){
-    pendEl = makeCard(s.pending, false);
-    if(!iAct(s)) pendEl.classList.add('nodrag');
-    if(keepHeard && keepIdx === s.pending) pendEl.dataset.heard = '1';
-    tl.appendChild(pendEl);
+  if(inPlay){
+    if(!pendPlaced) tl.appendChild(pendEl);
   } else if(s.phase==='show' && s.last && s.last.winner==null){
     const el = makeCard(s.last.song, true);
     el.classList.add('wrong');
@@ -1020,40 +1591,77 @@ function renderTimeline(){
 function renderBoard(){
   const s = G, box = $('#board');
   box.innerHTML = '';
-  s.players.forEach((p,i) => {
+  /* 인원이 많으면(교실 개인전) 전부 늘어놓지 않고 차례인 사람·상위권·나만 추린다 */
+  const many = s.players.length > 10;
+  let show = s.players.map((p,i) => i);
+  if(many){
+    const rank = s.players.map((p,i)=>({p,i})).sort((a,b) => s.pts
+      ? ((b.p.score|0)-(a.p.score|0) || b.p.cards.length-a.p.cards.length)
+      : (b.p.cards.length-a.p.cards.length || b.p.tokens-a.p.tokens));
+    const pick = [s.turn, ...rank.slice(0,5).map(o=>o.i)];
+    if(ME >= 0) pick.push(ME);
+    show = [...new Set(pick)];
+  }
+  box.classList.toggle('many', many);
+  show.forEach(i => {
+    const p = s.players[i];
     const c = document.createElement('div');
-    c.className = 'chip' + (i===s.turn ? ' active' : '');
+    c.className = 'chip' + (i===s.turn ? ' active' : '') + (i===ME ? ' mine' : '');
     const dot = (MODE==='online') ? `<span class="dot ${presCls(p.id)}" data-pid="${esc(p.id)}"></span>` : '';
-    c.innerHTML = dot + `${esc(p.name)} ${p.cards.length}/${WIN_CARDS}장 🪙${p.tokens}`;
+    c.innerHTML = dot + (s.pts
+      ? `${esc(p.name)} <b>${p.score|0}점</b> · ${p.cards.length}장 🪙${p.tokens}`
+      : `${esc(p.name)} ${p.cards.length}/${winOf(s)}장 🪙${p.tokens}`);
     box.appendChild(c);
   });
+  if(many && show.length < s.players.length){
+    const more = document.createElement('div');
+    more.className = 'chip more';
+    more.textContent = `외 ${s.players.length - show.length}명`;
+    box.appendChild(more);
+  }
   const who = s.players[s.turn], v = s.players[viewOf(s)];
-  if(s.phase==='challenge'){
-    $('#turnBanner').textContent = `🔥 ${s.players[s.challenger].name} 도전 중`;
-    $('#turnSub').textContent = `${s.players[s.challenger].name}의 타임라인이에요. 알맞다고 생각하는 자리에 놓으세요.`;
+  if(s.phase==='ask' && chalPick!=null){
+    $('#turnBanner').textContent = `🔥 ${s.players[chalPick].name} 도전 자리 고르는 중`;
+    $('#turnSub').textContent = `${s.players[s.placer].name}님의 카드 줄이에요. 표시된 자리 말고 다른 자리로 카드를 옮긴 뒤 ‘도전 확정’을 누르세요.`;
+  } else if(s.phase==='ask'){
+    $('#turnBanner').textContent = `🔥 도전 받는 중`;
+    $('#turnSub').textContent = `${s.players[s.placer].name}님이 놓은 자리가 맞을까요? 도전할 사람은 다른 자리를 골라 보세요.`;
   } else if(s.phase==='show'){
     $('#turnBanner').textContent = '결과';
     $('#turnSub').textContent = `${v.name}의 타임라인`;
   } else {
     $('#turnBanner').textContent = `🎤 ${who.name} 차례`;
-    $('#turnSub').textContent = `먼저 ${WIN_CARDS}장을 맞게 놓으면 승리 · 틀리면 카드만 버려요`;
+    $('#turnSub').textContent = (s.gmode === 'rounds')
+      ? `남은 차례 ${s.left}번 · 다 돌면 점수가 가장 높은 사람이 승리 · 빨리 놓을수록 점수가 높아요`
+      : s.pts
+        ? `먼저 ${winOf(s)}장을 맞게 놓으면 승리 · 빨리 놓을수록 점수가 높아요`
+        : `먼저 ${winOf(s)}장을 맞게 놓으면 승리 · 틀리면 카드만 버려요`;
   }
 }
 function renderAsk(){
   const s = G, bar = $('#askBar');
   bar.innerHTML = '';
   if(s.phase !== 'ask') return;
+  if(chalPick != null) return;          // 자리를 고르는 동안에는 버튼을 숨긴다
   const t = document.createElement('div');
   t.className = 't';
-  t.textContent = `🔥 도전할 사람 있나요? 토큰 ${COST_CHALLENGE}개를 내고, 맞히면 카드를 가져갑니다`;
+  t.textContent = `🔥 도전할 사람 있나요? 토큰 ${COST_CHALLENGE}개를 내고 다른 자리를 골라 맞히면 카드를 가져가고 토큰도 돌려받아요 (틀리면 토큰을 잃어요). 여러 명이 도전할 수 있지만 같은 자리는 안 돼요.`;
   bar.appendChild(t);
   const elig = eligible(s);
+  const done = toArr(s.chals);
   const mk = (label, cls, fn) => { const b=document.createElement('button'); if(cls) b.className=cls; b.textContent=label; b.onclick=fn; bar.appendChild(b); };
+  const startPick = i => { chalPick = i; renderGame(); toast('카드를 다른 자리로 옮긴 뒤 ‘도전 확정’을 누르세요'); };
+  if(done.length){
+    const w = document.createElement('div');
+    w.className = 'note';
+    w.textContent = '🔥 도전한 사람: ' + done.map(c => (s.players[c.by] && s.players[c.by].name) || '').join(', ');
+    bar.appendChild(w);
+  }
   if(MODE === 'local'){
-    elig.forEach(i => mk(s.players[i].name + ' 도전!', '', () => send({ type:'challenge', by:i })));
-    mk('아무도 안 함', 'pass', () => send({ type:'passAll' }));
+    elig.filter(i => !s.passed.includes(i)).forEach(i => mk(s.players[i].name + ' 도전!', '', () => startPick(i)));
+    mk('남은 사람 안 함', 'pass', () => send({ type:'passAll' }));
   } else if(elig.includes(ME) && !s.passed.includes(ME)){
-    mk('🔥 도전!', '', () => send({ type:'challenge' }));
+    mk('🔥 도전!', '', () => startPick(ME));
     mk('안 할래요', 'pass', () => send({ type:'pass' }));
   } else {
     const w = document.createElement('div');
@@ -1092,9 +1700,9 @@ function renderActs(){
       add('⭕ 맞았어요 🪙+1', () => send({ type:'judge', ok:true,  by:(MODE==='local'? -1 : ME) }), 'small');
       add('❌ 아니에요',      () => send({ type:'judge', ok:false, by:(MODE==='local'? -1 : ME) }), 'ghost small');
     } else wait('다른 사람들이 인정해 주기를 기다리는 중…');
-  } else if(s.phase === 'challenge'){
-    if(iAct(s)) add('🔥 도전 확정', doCPlace);
-    else wait(s.players[s.challenger].name + '님이 자리를 고르는 중…');
+  } else if(s.phase === 'ask' && chalPick != null){
+    add('🔥 도전 확정', doChalPlace);
+    add('취소', () => { chalPick = null; renderGame(); }, 'ghost small');
   } else if(s.phase === 'over'){
     if(MODE === 'local' || (RD && RD.host === myId)) add('🔄 다시 하기', restartGame);
   }
@@ -1121,12 +1729,18 @@ function answerInputs(){
 function renderGame(){
   if(!G) return;
   const key = G.gameId + ':' + G.turn + ':' + G.pending;
-  if(ansFor !== key){ ansFor = key; resetAnswer(); }
+  if(ansFor !== key){ ansFor = key; resetAnswer(); chalPick = null; }
+  if(G.phase !== 'ask') chalPick = null;
   renderBoard(); renderAsk(); renderTimeline(); renderActs();
-  $('#gMode').textContent = (MODE === 'online') ? ('방 ' + ROOM) : '로컬';
+  $('#gMode').textContent = (CLASS && CLASS.kind === 'team') ? '🏫 모둠 대항'
+                          : isBoard ? ('🏫 칠판 · 방 ' + ROOM)
+                          : (MODE === 'online') ? ('방 ' + ROOM) : '로컬';
   if(G.phase === 'show' && G.last) onAir(G.last.msg + ' — ' + SONG(G.last.song).a + ' · ' + SONG(G.last.song).t + ' (' + SONG(G.last.song).y + ')');
+  else if(G.phase === 'place' && isBoard && MODE === 'online') onAir('🎧 칠판에서 재생을 누르고, ' + G.players[G.turn].name + '이(가) 자기 기기에서 카드를 놓아요');
+  else if(G.phase === 'place' && quietMode() && iAct(G)) onAir('🔇 소리는 칠판에서 나와요 — 카드를 알맞은 자리로 옮기세요');
   else if(G.phase === 'place' && iAct(G)) onAir('🎧 재생을 누른 뒤, 카드를 알맞은 자리로 옮기세요');
   scheduleNext();
+  resultFx();
   if(G.phase === 'over') showOver(); else ov('ovOver', false);
 }
 function scheduleNext(){
@@ -1135,21 +1749,29 @@ function scheduleNext(){
   if(!(MODE === 'local' || ME === G.turn)) return;   // 한 사람만 다음 차례를 넘긴다
   nextTimer = setTimeout(() => send({ type:'next' }), 2800);
 }
-function posOfPending(){ return [...$('#timeline').children].indexOf(pendEl); }
+function posOfPending(){ return [...$('#timeline').children].filter(c => c.classList.contains('card')).indexOf(pendEl); }
 function doPlace(){
   if(!pendEl) return;
-  if(pendEl.dataset.heard !== '1') return toast('🎧 아직 이 곡을 못 들었어요. 재생을 먼저 눌러주세요');
+  if(!quietMode() && pendEl.dataset.heard !== '1') return toast('🎧 아직 이 곡을 못 들었어요. 재생을 먼저 눌러주세요');
   const claim = (MODE === 'local')
     ? (sayOn ? true : null)
     : ((ansT.trim() || ansA.trim()) ? { ti: ansT.trim().slice(0,40), ar: ansA.trim().slice(0,40) } : null);
   send({ type:'place', pos: posOfPending(), claim });
   resetAnswer();
 }
-function doCPlace(){ if(pendEl) send({ type:'cplace', pos: posOfPending() }); }
+function doChalPlace(){
+  if(!pendEl || chalPick == null) return;
+  const pos = posOfPending();
+  if(pos === G.pos) return toast('📍 차례인 사람이 놓은 자리에는 놓을 수 없어요. 다른 자리를 골라주세요');
+  if(toArr(G.chals).some(c => c.pos === pos)) return toast('🔥 이미 다른 사람이 고른 자리예요. 다른 자리를 골라주세요');
+  const by = chalPick; chalPick = null;
+  send({ type:'challenge', by, pos });
+}
 
 function send(a){
   const act = Object.assign({}, a);
-  if(act.by == null) act.by = (MODE === 'local') ? (G.phase === 'challenge' ? G.challenger : G.turn) : ME;
+  if(act.now == null) act.now = (MODE === 'online') ? serverNow() : Date.now();
+  if(act.by == null) act.by = (MODE === 'local') ? G.turn : ME;
   if(MODE === 'local'){
     let ns; try{ ns = apply(clone(G), act); }catch(e){ return toast(e.message); }
     G = ns; renderGame();
@@ -1159,22 +1781,34 @@ function send(a){
     roomRef.child('state').transaction(cur => {
       if(cur === null) return cur;
       try{ err = null; return apply(norm(cur), act); }catch(e){ err = e; return; }
-    }, e => { if(err) toast(err.message); else if(e) toast('연결 문제: ' + e.message); }, false);
+    }, e => {
+      if(err){
+        toast(err.message);
+        /* 같은 순간에 다른 사람이 그 자리를 채간 경우 — 다시 고를 수 있게 되돌린다 */
+        if(act.type === 'challenge' && G && G.phase === 'ask'){ chalPick = act.by; renderGame(); }
+      } else if(e) toast('연결 문제: ' + e.message);
+    }, false);
   }
 }
 function showOver(){
   const s = G;
-  const ranked = s.players.map((p,i)=>({p,i})).sort((a,b)=> b.p.cards.length - a.p.cards.length || b.p.tokens - a.p.tokens);
+  const ranked = s.players.map((p,i)=>({p,i})).sort((a,b)=> s.pts
+    ? ((b.p.score|0)-(a.p.score|0) || b.p.cards.length - a.p.cards.length)
+    : (b.p.cards.length - a.p.cards.length || b.p.tokens - a.p.tokens));
   const title = (s.winner != null) ? `🏆 ${esc(s.players[s.winner].name)} 승리!` : '게임 끝 — 남은 곡이 없어요';
+  const top = ranked.slice(0, 10);
   $('#overBody').innerHTML = `<h2>${title}</h2>`
-    + ranked.map((o,r)=>`<p style="margin:.3rem 0">${r+1}위 &nbsp; <b>${esc(o.p.name)}</b> — ${o.p.cards.length}장 · 🪙${o.p.tokens}</p>`).join('')
+    + top.map((o,r)=>`<p style="margin:.3rem 0">${r+1}위 &nbsp; <b>${esc(o.p.name)}</b> — ${s.pts?`${o.p.score|0}점 · `:''}${o.p.cards.length}장 · 🪙${o.p.tokens}</p>`).join('')
+    + (ranked.length > top.length ? `<p class="note">외 ${ranked.length - top.length}명</p>` : '')
     + `<div style="margin-top:18px"><button class="btn" id="ovClose">닫기</button></div>`;
   $('#ovClose').onclick = () => ov('ovOver', false);
   ov('ovOver', true);
 }
 function restartGame(){
-  if(MODE === 'local'){ G = newGame(G.players.map(p=>({id:p.id,name:p.name}))); renderGame(); }
-  else if(RD && RD.host === myId){ roomRef.update({ state: newGame(G.players.map(p=>({id:p.id,name:p.name}))) }); }
+  const list = G.players.map(p=>({id:p.id,name:p.name}));
+  const opt = { win:winOf(G), pts:G.pts, gmode:G.gmode, rounds:G.rounds, now:(MODE==='online'?serverNow():Date.now()) };
+  if(MODE === 'local'){ G = newGame(list, opt); renderGame(); }
+  else if(RD && RD.host === myId){ roomRef.update({ state: newGame(list, opt) }); }
 }
 
 /* =========================================================
@@ -1183,7 +1817,7 @@ function restartGame(){
 let lcN = 2;
 function buildLocalSetup(){
   const box = $('#lcCount'); box.innerHTML = '';
-  for(let n=1; n<=6; n++){
+  for(let n=1; n<=10; n++){
     const b = document.createElement('button');
     b.textContent = n;
     if(n === lcN) b.className = 'sel';
@@ -1251,9 +1885,11 @@ $('#onJoin').onclick = async () => {
     const res = await db.ref(P_ROOM+'/'+code).transaction(r => {
       if(!r) return r;
       r.players = r.players || {};
+      /* 교실 개인전은 선생님이 정한 인원까지, 그 밖에는 6명 */
+      const cap = (r.classMode === 'solo') ? Math.min(r.cap || 25, 35) : 10;
       if(r.players[myId]){ r.players[myId].name = name; r.players[myId].online = true; why=''; return r; }
       if(r.status !== 'lobby'){ why = '이미 게임이 시작된 방이에요'; return; }
-      if(Object.keys(r.players).length >= 6){ why = '방이 가득 찼어요 (최대 6명)'; return; }
+      if(Object.keys(r.players).length >= cap){ why = `방이 가득 찼어요 (최대 ${cap}명)`; return; }
       r.players[myId] = { name, t:Date.now(), online:true };
       why = '';
       return r;
@@ -1266,8 +1902,11 @@ $('#onJoin').onclick = async () => {
 };
 function enterRoom(code){
   MODE='online'; ROOM=code; roomRef=db.ref(P_ROOM+'/'+code); G=null; ME=-1;
-  const on = roomRef.child('players/'+myId+'/online');
-  on.set(true); on.onDisconnect().set(false);
+  /* 칠판은 참가자가 아니므로 players 에 자리를 만들지 않는다 */
+  if(!isBoard){
+    const on = roomRef.child('players/'+myId+'/online');
+    on.set(true); on.onDisconnect().set(false);
+  }
   store.set(ROOM_KEY, JSON.stringify({ code, id:myId, t:Date.now() }));
   watchConnection(); startPresence(code); attachChat(code);
   try{ history.replaceState(null, '', '?room=' + code); }catch(e){}
@@ -1277,7 +1916,7 @@ function onRoom(r){
   if(MODE !== 'online') return;
   if(!r){ toast('방이 사라졌어요'); leaveRoom(); return; }
   RD = r;
-  if((!r.players || !r.players[myId]) && r.status === 'lobby'){ toast('방에서 나왔어요'); leaveRoom(); return; }
+  if(!isBoard && (!r.players || !r.players[myId]) && r.status === 'lobby'){ toast('방에서 나왔어요'); leaveRoom(); return; }
   if(r.status !== 'playing' || !r.state){ G=null; closeOverlays(); show('lobby'); renderLobby(); return; }
   const s = norm(clone(r.state));
   const fresh = !G || G.gameId !== s.gameId;
@@ -1286,7 +1925,7 @@ function onRoom(r){
     if(gone.length) toast(gone.join(', ') + '님이 게임에서 나갔어요');
   }
   G = s; ME = s.players.findIndex(p => p.id === myId);
-  if(ME < 0 && (!r.players || !r.players[myId])){ toast('게임에서 빠졌어요'); leaveRoom(); return; }
+  if(!isBoard && ME < 0 && (!r.players || !r.players[myId])){ toast('게임에서 빠졌어요'); leaveRoom(); return; }
   if(fresh){ closeOverlays(); stopPlay(); }
   show('game'); renderGame();
 }
@@ -1348,6 +1987,7 @@ function paintPresence(){
 let hostTryAt = 0;
 function maybeMoveHost(){
   if(!RD || !roomRef || RD.host === myId) return;
+  if(RD.classMode) return;      // 교실 모드에서는 선생님 칠판이 계속 방장이다
   const h = PRES[RD.host];
   const hostHere = !!(RD.players && RD.players[RD.host]);
   if(hostHere && h && h.lastSeen && serverNow() - h.lastSeen < TAKEOVER_MS) return;
@@ -1361,34 +2001,80 @@ function maybeMoveHost(){
     if(!e && done) toast('방장이 오래 안 보여서 내가 방장이 됐어요');
   }, false);
 }
+function joinLink(){ return location.origin + location.pathname + '?room=' + ROOM; }
+/* 칠판용 대기실 — 방 코드를 크게 띄우고 들어온 모둠을 보여 준다 */
+function renderBoardLobby(){
+  const r = RD, ps = Object.entries(r.players||{}).sort((a,b)=>a[1].t-b[1].t);
+  const solo = r.classMode === 'solo';
+  const cap = solo ? Math.min(r.cap || 25, 35) : 10;
+  const unit = solo ? '명' : '모둠';
+  $('#lobbyBody').innerHTML = `
+    <h2 style="text-align:center">🏫 ${solo ? '칠판 + 개인 기기' : '칠판 + 모둠 기기'}</h2>
+    <p class="note" style="text-align:center;margin:0">아래 주소로 들어가 <b>방 코드</b>를 입력하세요</p>
+    <p class="joinurl" style="text-align:center">${esc(joinLink())}</p>
+    <div class="bigcode">${ROOM}</div>
+    <ul class="teamlist">${ps.length ? ps.map(([id,p])=>`<li>${esc(p.name)}</li>`).join('') : '<li style="border-style:dashed;color:#9fb3c6">아직 아무도 없어요</li>'}</ul>
+    <p class="note" style="text-align:center">${ps.length}${unit} 들어옴 (최대 ${cap}${unit}) · 2${unit} 이상이면 시작할 수 있어요</p>
+    <div style="text-align:center"><button class="btn big" id="lbStart" ${ps.length<2?'disabled':''}>게임 시작</button>
+    <button class="btn ghost small" id="lbCopy">초대 링크 복사</button></div>`;
+  $('#lbCopy').onclick = () => { const l=joinLink(); navigator.clipboard ? navigator.clipboard.writeText(l).then(()=>toast('링크를 복사했어요'), ()=>toast(l)) : toast(l); };
+  $('#lbStart').onclick = () => {
+    const list = ps.slice(0, cap).map(([id,p]) => ({ id, name:p.name }));
+    if(list.length < 2) return toast('2' + unit + ' 이상 있어야 해요');
+    /* 개인전에서만 카훗식 점수를 켠다 */
+    const opt = { win:r.win, now:serverNow() };
+    if(solo){ opt.pts = true; opt.gmode = r.gmode || 'cards'; opt.rounds = r.rounds || 4; }
+    roomRef.transaction(rr => {
+      if(!rr || rr.status !== 'lobby') return;
+      rr.status = 'playing'; rr.state = newGame(list, opt);
+      return rr;
+    }, null, false);
+  };
+}
 function renderLobby(){
   const r = RD, ps = Object.entries(r.players||{}).sort((a,b)=>a[1].t-b[1].t);
   const isHost = r.host === myId;
   maybeMoveHost();
-  const link = location.origin + location.pathname + '?room=' + ROOM;
+  if(isBoard) return renderBoardLobby();
+  const link = joinLink();
   $('#lobbyBody').innerHTML = `
     <h2>대기실</h2>
     <p class="note" style="margin:0">방 코드</p>
     <div class="code">${ROOM}</div>
     <div class="row"><button class="btn ghost small" id="lbCopy">초대 링크 복사</button></div>
     <ul class="plist">${ps.map(([id,p])=>`<li><span class="dot ${presCls(id)}" data-pid="${esc(id)}"></span>${esc(p.name)}${id===r.host?' <span class="tag">방장</span>':''}${id===myId?' <span class="tag">나</span>':''}</li>`).join('')}</ul>
-    <p class="note">${ps.length}/6명 · 2명 이상이면 시작할 수 있어요.</p>
-    ${isHost ? `<button class="btn big" id="lbStart" style="width:100%" ${ps.length<2?'disabled':''}>게임 시작</button>`
+    <p class="note">${r.classMode ? `${ps.length}명 참가 중` : `${ps.length}/10명 · 2명 이상이면 시작할 수 있어요.`}</p>
+    ${r.classMode ? '<p class="note">🏫 선생님이 칠판에서 시작하기를 기다리는 중…</p>'
+     : isHost ? `<button class="btn big" id="lbStart" style="width:100%" ${ps.length<2?'disabled':''}>게임 시작</button>`
              : '<p class="note">방장이 시작하기를 기다리는 중…</p>'}`;
   $('#lbCopy').onclick = () => { navigator.clipboard ? navigator.clipboard.writeText(link).then(()=>toast('링크를 복사했어요'), ()=>toast(link)) : toast(link); };
   const st = $('#lbStart');
   if(st) st.onclick = () => {
-    const list = ps.slice(0,6).map(([id,p]) => ({ id, name:p.name }));
+    const list = ps.slice(0,10).map(([id,p]) => ({ id, name:p.name }));
     if(list.length < 2) return toast('2명 이상 있어야 해요');
     roomRef.transaction(r => {
       if(!r || r.status !== 'lobby') return;          // 이미 시작됐으면 그대로 둔다
-      r.status = 'playing'; r.state = newGame(list);
+      r.status = 'playing'; r.state = newGame(list, { win:r.win, now:serverNow() });
       return r;
     }, null, false);
   };
 }
 function leaveRoom(){
-  const code = ROOM, ref = roomRef, data = RD;
+  const code = ROOM, ref = roomRef, data = RD, wasBoard = isBoard;
+  /* 칠판(선생님)이 나가면 수업이 끝난 것이므로 방을 통째로 닫는다 */
+  if(wasBoard && ref && db){
+    detachChat(); stopPresence(); store.del(ROOM_KEY);
+    clearTimeout(nextTimer); stopPlay();
+    ref.off();
+    ref.remove().catch(()=>{});
+    db.ref(`${P_CHAT}/${code}`).remove().catch(()=>{});
+    db.ref(`${P_PRES}/${code}`).remove().catch(()=>{});
+    roomRef=null; ROOM=null; RD=null; G=null; MODE=null; ME=-1;
+    classReset(); closeOverlays(); $('#onAirBox').classList.remove('on');
+    try{ history.replaceState(null, '', location.pathname); }catch(e){}
+    show('home');
+    return;
+  }
   /* 게임 중이면 판에서도 빠져서 남은 사람들이 이어서 할 수 있게 한다 */
   if(ref && data && data.status === 'playing' && data.state && G && G.players.some(p => p.id === myId)){
     ref.child('state').transaction(cur => {
@@ -1418,6 +2104,7 @@ function leaveRoom(){
     } else if(online){ online.set(false).catch(()=>{}); }
   }
   roomRef=null; ROOM=null; RD=null; G=null; MODE=null; ME=-1;
+  classReset();
   closeOverlays(); $('#onAirBox').classList.remove('on');
   try{ history.replaceState(null, '', location.pathname); }catch(e){}
   show('home');
@@ -1572,8 +2259,8 @@ const RULES_HTML = `
 &nbsp;&nbsp;· <b>로컬</b>에서는 소리 내어 말한 뒤 🎤 버튼을 눌러요. 정답이 공개되면 <b>다른 사람들이 인정</b>해 줍니다.<br>
 &nbsp;&nbsp;· <b>온라인</b>에서는 노래를 들으면서 제목·가수를 <b>칸에 적어</b> 둬요. 정답 공개 때 자동으로 채점됩니다.<br>
 <b>넘기기 (1개)</b> — 모르겠으면 토큰 1개를 내고 이 곡을 건너뛰어요.<br>
-<b>딴지 걸기 (1개)</b> — 다른 사람이 놓은 자리가 틀렸다고 생각하면 토큰 1개를 내고 내가 다시 놓아요.
-그 사람이 틀리고 내가 맞히면 카드는 내 것이 돼요. 내가 틀리면 토큰만 잃어요.<br>
+<b>딴지 걸기 (1개)</b> — 다른 사람이 놓은 자리가 틀렸다고 생각하면 토큰 1개를 내고, 그 사람의 카드 줄에서 <b>다른 자리</b>에 놓아요. (같은 자리는 안 돼요)
+차례인 사람의 카드 줄에서 <b>그 사람이 놓은 자리가 아닌 다른 자리</b>를 골라요. 그 사람이 틀리고 내가 맞히면 카드는 내 카드 줄에 들어오고 <b>낸 토큰도 돌려받아요.</b> 틀리면 토큰을 잃어요. <b>여러 명이 함께 도전할 수 있지만, 이미 다른 사람이 고른 자리는 고를 수 없어요.</b><br>
 <b>그냥 받기 (3개)</b> — 토큰 3개를 내면 지금 나온 곡을 확인 없이 바로 가져와요.</p>
 
 <h3>🔊 소리가 안 나올 때</h3>
@@ -1584,6 +2271,13 @@ const RULES_HTML = `
 <p><b>로컬 게임</b>은 기기 하나를 돌려가며 해요. 차례인 사람이 화면을 보고 카드를 놓으면 돼요.<br>
 <b>온라인 게임</b>은 각자 기기에서 같은 방 코드로 들어와서 함께해요. 방 코드는 4글자예요.</p>
 
+<h3>🏫 교실 모드 (선생님용)</h3>
+<p>전자칠판에 띄워 학급 전체가 함께 하는 모드예요. 글씨가 크게 나오고, 목표 카드 수를 5·7·10장 중에 고를 수 있어요.<br>
+<b>① 모둠 대항</b> — 학생 기기 없이 칠판 하나로만 해요. 모둠 대표가 나와서 카드를 놓아요.<br>
+<b>② 칠판 + 모둠 기기</b> — 칠판은 음악과 카드 줄만 크게 보여주고, 모둠마다 기기 하나로 카드를 놓아요. 소리는 칠판에서만 나요.<br>
+<b>③ 칠판 + 개인 기기</b> — ②와 같은데 모둠 대신 학생 개인이 겨뤄요. <b>최대 35명</b>까지 되고, 여기에만 <b>점수</b>가 붙어서 맞게 놓으면 ${PT_HIT}점에 빨리 놓을수록 최대 ${PT_BONUS}점을 더 받아요.
+이길 기준은 <b>카드 목표</b>(먼저 N장) 또는 <b>라운드 후 최고득점</b>(정해진 차례를 다 돌고 점수 1위) 중에 고르면 돼요.</p>
+
 <div style="text-align:center;margin-top:18px"><button class="btn" id="rulesClose">닫기</button></div>
 `;
 function openRules(){
@@ -1591,6 +2285,106 @@ function openRules(){
   $('#rulesClose').onclick = () => ov('ovRules', false);
   ov('ovRules', true);
 }
+
+/* =========================================================
+   🏫 교실 모드 — 선생님이 진행 방식을 고른다
+   ① team   모둠 대항 (전자칠판 하나로만)
+   ② device 칠판 + 모둠 기기 (칠판은 음악·타임라인만)
+   ③ solo   칠판 + 개인 기기 (②와 같은 방식, 참가 단위만 개인)
+   ========================================================= */
+const CS_MODES = [
+  { k:'team',   t:'① 모둠 대항 (칠판만)',        d:'학생 기기 없이 전자칠판 하나로 진행해요. 모둠 대표가 나와서 카드를 놓습니다. 준비물이 가장 적어요.' },
+  { k:'device', t:'② 칠판 + 모둠 기기',          d:'칠판은 음악과 타임라인만 크게 보여주고, 모둠마다 기기 하나로 카드를 놓아요. 소리는 칠판에서만 납니다.' },
+  { k:'solo',   t:'③ 칠판 + 개인 기기',          d:'②와 같은 방식인데 모둠이 아니라 학생 개인이 한 명씩 겨뤄요. 최대 35명까지 되고, 여기에만 카훗식 점수가 붙어요.' }
+];
+const CS_SIZES = [{v:19,t:'보통'},{v:23,t:'크게'},{v:28,t:'아주 크게'}];
+let cs = { kind:'team', size:23, teams:4, names:[], win:7, cap:25, gmode:'rounds', rounds:2 };
+
+function csBtnRow(box, list, cur, pick){
+  box.innerHTML = '';
+  list.forEach(o => {
+    const b = document.createElement('button');
+    b.textContent = o.t; if(o.v === cur) b.className = 'sel';
+    b.onclick = () => pick(o.v);
+    box.appendChild(b);
+  });
+}
+function buildClassSetup(){
+  $('#csWarn').hidden = fbReady();
+  const pick = $('#csPick'); pick.innerHTML = '';
+  CS_MODES.forEach(m => {
+    const b = document.createElement('button');
+    b.className = 'mode-card' + (cs.kind === m.k ? ' sel' : '');
+    b.innerHTML = `<b>${m.t}</b><span>${m.d}</span>`;
+    b.onclick = () => { cs.kind = m.k; buildClassSetup(); };
+    pick.appendChild(b);
+  });
+  csBtnRow($('#csSize'), CS_SIZES, cs.size, v => { cs.size = v; buildClassSetup(); });
+
+  const o = $('#csOpts');
+  const winRow = `<div class="field"><label>목표 카드 수 (몇 장 모으면 이기나요)</label><div class="opt-row" id="csWin"></div>
+    <p class="note" style="margin:6px 0 0">10장은 한 차시에 끝나지 않을 수 있어요. 40분 수업이면 5~7장을 권해요.</p></div>`;
+  if(cs.kind === 'team'){
+    o.innerHTML = `<div class="field"><label>모둠 수</label><div class="opt-row" id="csTeams"></div></div>
+      <div class="field"><label>모둠 이름 (비우면 “1모둠, 2모둠…”)</label><div id="csNames" style="display:grid;gap:8px"></div></div>` + winRow;
+    csBtnRow($('#csTeams'), [2,3,4,5,6].map(v=>({v,t:v+'모둠'})), cs.teams, v => { csKeepNames(); cs.teams = v; buildClassSetup(); });
+    const rows = $('#csNames');
+    for(let i=0;i<cs.teams;i++){
+      const inp = document.createElement('input');
+      inp.maxLength = 10; inp.placeholder = (i+1) + '모둠'; inp.value = cs.names[i] || '';
+      rows.appendChild(inp);
+    }
+  } else if(cs.kind === 'device'){
+    o.innerHTML = `<p class="note">칠판에서 <b>방 코드</b>를 띄우면, 모둠 기기에서 첫 화면 → 온라인 게임 → 방 코드를 넣어 들어옵니다. 최대 10모둠이에요.</p>` + winRow;
+  } else {
+    const goalRow = (cs.gmode === 'rounds')
+      ? `<div class="field"><label>한 사람당 차례 수</label><div class="opt-row" id="csRounds"></div>
+           <p class="note" style="margin:6px 0 0">모두가 이만큼씩 차례를 돌면 끝나고, 점수가 가장 높은 사람이 이겨요.</p></div>`
+      : winRow;
+    o.innerHTML = `<div class="field"><label>참가 인원 (최대)</label><div class="opt-row" id="csCap"></div>
+        <p class="note" style="margin:6px 0 0">한 명씩 돌아가며 놓기 때문에 인원이 많을수록 한 바퀴가 길어져요. 한 차례에 40초쯤 잡으면 <b>${cs.cap}명은 한 바퀴에 ${Math.round(cs.cap*40/60)}분</b>쯤 걸려요.
+        20명이 넘으면 ‘라운드 후 최고득점’으로 <b>1~2바퀴</b>만 도는 걸 권해요.</p></div>
+      <div class="field"><label>이기는 기준</label><div class="opt-row" id="csGoal"></div></div>
+      ${goalRow}
+      <p class="note">🏅 개인전에는 <b>카훗식 점수</b>가 붙어요 — 맞게 놓으면 ${PT_HIT}점, 빨리 놓을수록 최대 ${PT_BONUS}점을 더 받고, 도전 성공은 ${PT_CHAL}점, 제목·가수까지 맞히면 ${PT_CLAIM}점이에요.</p>
+      <p class="note">학생은 첫 화면 → 온라인 게임 → 방 코드로 들어와요.</p>`;
+    csBtnRow($('#csCap'), [6,10,15,20,25,30,35].map(v=>({v,t:v+'명'})), cs.cap, v => { cs.cap = v; buildClassSetup(); });
+    csBtnRow($('#csGoal'), [{v:'cards',t:'카드 목표'},{v:'rounds',t:'라운드 후 최고득점'}], cs.gmode, v => { cs.gmode = v; buildClassSetup(); });
+    const rr = $('#csRounds');
+    if(rr) csBtnRow(rr, [1,2,3,4,5,6,8].map(v=>({v,t:v+'번'})), cs.rounds, v => { cs.rounds = v; buildClassSetup(); });
+  }
+  const w = $('#csWin');
+  if(w) csBtnRow(w, [5,7,10].map(v=>({v,t:v+'장'})), cs.win, v => { csKeepNames(); cs.win = v; buildClassSetup(); });
+}
+function csKeepNames(){
+  const rows = $('#csNames'); if(!rows) return;
+  cs.names = [...rows.querySelectorAll('input')].map(i => i.value);
+}
+$('#csStart').onclick = async () => {
+  csKeepNames();
+  if(cs.kind === 'team'){
+    const names = [];
+    for(let i=0;i<cs.teams;i++) names.push((cs.names[i]||'').trim() || (i+1) + '모둠');
+    CLASS = { kind:'team', size:cs.size }; isBoard = true;
+    MODE = 'local'; ME = -1; ROOM = null; RD = null;
+    setBoardView(true, cs.size);
+    G = newGame(names.map((n,i) => ({ id:'T'+i, name:n })), { win:cs.win, now:Date.now() });
+    $('#chatBtn').classList.remove('on');
+    closeOverlays(); show('game'); renderGame();
+    return;
+  }
+  if(!fbReady()) return toast('②·③번은 firebaseConfig를 먼저 채워야 해요');
+  try{
+    let code = genCode();
+    for(let k=0;k<6;k++){ const sn = await db.ref(P_ROOM+'/'+code).get(); if(!sn.exists()) break; code = genCode(); }
+    const base = { host:myId, board:myId, status:'lobby', created:TS(), players:{}, classMode:cs.kind, win:cs.win };
+    if(cs.kind === 'solo'){ base.cap = cs.cap; base.gmode = cs.gmode; base.rounds = cs.rounds; }
+    await db.ref(P_ROOM+'/'+code).set(base);
+    CLASS = { kind:cs.kind, size:cs.size }; isBoard = true;
+    setBoardView(true, cs.size);
+    enterRoom(code);
+  }catch(e){ toast('방을 만들지 못했어요: ' + e.message); }
+};
 
 /* =========================================================
    화면 이동 / 공통 버튼
@@ -1604,8 +2398,14 @@ function goTo(id){
   closeOverlays();
   if(id === 'localSetup') buildLocalSetup();
   if(id === 'onlineSetup') prepOnline();
-  if(id === 'home'){ MODE = null; G = null; stopPlay(); $('#onAirBox').classList.remove('on'); }
+  if(id === 'classSetup') buildClassSetup();
+  if(id === 'home'){ MODE = null; G = null; stopPlay(); $('#onAirBox').classList.remove('on'); classReset(); }
   show(id);
+}
+/* 교실 모드에서 빠져나올 때 칠판 화면 설정을 되돌린다 */
+function classReset(){
+  CLASS = null; isBoard = false;
+  setBoardView(false);
 }
 /* 오버레이 바깥을 눌러도 닫히게 (결과 창은 그대로 둠) */
 ['ovRules','ovLeave'].forEach(id => {
@@ -1614,16 +2414,18 @@ function goTo(id){
 
 /* ---------- 게임에서 나가기 ---------- */
 $('#gExit').onclick = () => {
-  $('#leaveMsg').textContent = (MODE === 'online')
-    ? '내 카드는 덱으로 돌아가고, 남은 사람들끼리 이어서 해요. 다시 들어올 수는 없어요.'
-    : '지금 하던 게임은 저장되지 않아요.';
+  $('#leaveMsg').textContent = isBoard
+    ? (MODE === 'online' ? '수업을 끝내고 방을 닫아요. 모둠 기기도 모두 나가게 됩니다.' : '지금 하던 게임은 저장되지 않아요.')
+    : (MODE === 'online')
+      ? '내 카드는 덱으로 돌아가고, 남은 사람들끼리 이어서 해요. 다시 들어올 수는 없어요.'
+      : '지금 하던 게임은 저장되지 않아요.';
   ov('ovLeave', true);
 };
 $('#leaveStay').onclick = () => ov('ovLeave', false);
 $('#leaveGo').onclick = () => {
   ov('ovLeave', false);
   if(MODE === 'online') leaveRoom();
-  else { clearTimeout(nextTimer); stopPlay(); MODE=null; G=null; $('#onAirBox').classList.remove('on'); show('home'); }
+  else { clearTimeout(nextTimer); stopPlay(); MODE=null; G=null; $('#onAirBox').classList.remove('on'); classReset(); show('home'); }
 };
 
 /* =========================================================
