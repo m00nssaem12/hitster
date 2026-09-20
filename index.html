@@ -181,10 +181,17 @@
   .opt-row button.sel{background:var(--gold);color:#000;border-color:#fff}
 
   /* 칠판 대기실 */
-  .bigcode{font-family:var(--disp);font-size:5rem;color:var(--gold);letter-spacing:.25em;line-height:1.1;margin:.2em 0}
-  .joinurl{font-size:1rem;color:#c8d6e2;word-break:break-all;margin-bottom:.6em}
-  .teamlist{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;list-style:none;padding:0;margin:10px 0}
-  .teamlist li{background:var(--card);border:2px solid var(--gold);border-radius:999px;padding:.4em .9em;font-weight:800;font-size:1rem}
+  .bl{display:flex;flex-direction:column;align-items:center;text-align:center;gap:.5rem}
+  .bl h2{margin:0}
+  .bl .note{margin:0}
+  .joinurl{font-size:.95rem;color:#c8d6e2;word-break:break-all;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:.35em 1em;margin:.2rem 0 0}
+  .bigcode{font-family:var(--disp);font-size:5.5rem;color:var(--gold);letter-spacing:.2em;padding-left:.2em;line-height:1;text-align:center;
+    background:var(--bg);border:3px solid var(--gold);border-radius:20px;padding-top:.15em;padding-bottom:.15em;margin:.6rem 0;width:100%;max-width:32rem;box-sizing:border-box}
+  .bl-cap{font-size:.95rem;color:#c8d6e2;font-weight:700;margin-top:.4rem}
+  .teamlist{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;list-style:none;padding:0;margin:0;width:100%}
+  .teamlist li{background:var(--card);border:2px solid var(--gold);border-radius:999px;padding:.4em 1.1em;font-weight:800;font-size:1.1rem}
+  .lbacts{display:flex;align-items:center;justify-content:center;gap:.8rem;flex-wrap:wrap;margin-top:.8rem}
+  .lbacts .btn{margin:0}
 
   .qacts{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:14px 0}
 </style>
@@ -1939,8 +1946,11 @@ function watchConnection(){
       const r = db.ref(`${P_PRES}/${ROOM}/${myId}`);
       r.onDisconnect().update({ connected:false });
       r.update({ connected:true, lastSeen:TS() });
-      const o = db.ref(`${P_ROOM}/${ROOM}/players/${myId}/online`);
-      o.onDisconnect().set(false); o.set(true);
+      /* 칠판은 참가자가 아니므로 players 에 자리를 만들지 않는다 */
+      if(!isBoard){
+        const o = db.ref(`${P_ROOM}/${ROOM}/players/${myId}/online`);
+        o.onDisconnect().set(false); o.set(true);
+      }
     }
     $('#connBar').classList.toggle('on', MODE==='online' && selfOffline);
   });
@@ -2009,14 +2019,16 @@ function renderBoardLobby(){
   const cap = solo ? Math.min(r.cap || 25, 35) : 10;
   const unit = solo ? '명' : '모둠';
   $('#lobbyBody').innerHTML = `
-    <h2 style="text-align:center">🏫 ${solo ? '칠판 + 개인 기기' : '칠판 + 모둠 기기'}</h2>
-    <p class="note" style="text-align:center;margin:0">아래 주소로 들어가 <b>방 코드</b>를 입력하세요</p>
-    <p class="joinurl" style="text-align:center">${esc(joinLink())}</p>
-    <div class="bigcode">${ROOM}</div>
-    <ul class="teamlist">${ps.length ? ps.map(([id,p])=>`<li>${esc(p.name)}</li>`).join('') : '<li style="border-style:dashed;color:#9fb3c6">아직 아무도 없어요</li>'}</ul>
-    <p class="note" style="text-align:center">${ps.length}${unit} 들어옴 (최대 ${cap}${unit}) · 2${unit} 이상이면 시작할 수 있어요</p>
-    <div style="text-align:center"><button class="btn big" id="lbStart" ${ps.length<2?'disabled':''}>게임 시작</button>
-    <button class="btn ghost small" id="lbCopy">초대 링크 복사</button></div>`;
+    <div class="bl">
+      <h2>🏫 ${solo ? '칠판 + 개인 기기' : '칠판 + 모둠 기기'}</h2>
+      <p class="note">아래 주소로 들어가 <b>방 코드</b>를 입력하세요</p>
+      <p class="joinurl">${esc(joinLink())}</p>
+      <div class="bigcode">${ROOM}</div>
+      <p class="bl-cap">${ps.length}${unit} 들어옴 (최대 ${cap}${unit}) · 2${unit} 이상이면 시작할 수 있어요</p>
+      <ul class="teamlist">${ps.length ? ps.map(([id,p])=>`<li>${esc(p.name)}</li>`).join('') : '<li style="border-style:dashed;color:#9fb3c6;font-weight:700">아직 아무도 없어요</li>'}</ul>
+      <div class="lbacts"><button class="btn big" id="lbStart" ${ps.length<2?'disabled':''}>게임 시작</button>
+      <button class="btn ghost small" id="lbCopy">초대 링크 복사</button></div>
+    </div>`;
   $('#lbCopy').onclick = () => { const l=joinLink(); navigator.clipboard ? navigator.clipboard.writeText(l).then(()=>toast('링크를 복사했어요'), ()=>toast(l)) : toast(l); };
   $('#lbStart').onclick = () => {
     const list = ps.slice(0, cap).map(([id,p]) => ({ id, name:p.name }));
