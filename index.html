@@ -9,6 +9,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=swap');
   @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
@@ -193,6 +194,18 @@
   .lbacts{display:flex;align-items:center;justify-content:center;gap:.8rem;flex-wrap:wrap;margin-top:.8rem}
   .lbacts .btn{margin:0}
 
+  /* 학생 참여 화면 */
+  .jn-code{width:100%;font-family:var(--disp);font-size:2.4rem;text-align:center;letter-spacing:.35em;padding:.3em 0 .3em .35em;text-transform:uppercase}
+  .jn-code.filled{border-color:var(--gold);color:var(--gold)}
+  /* 칠판 대기실 — QR 과 코드를 나란히 */
+  .jwrap{display:flex;gap:1.2rem;align-items:stretch;justify-content:center;flex-wrap:wrap;width:100%;margin:.4rem 0}
+  .jway{flex:1 1 15rem;max-width:22rem;background:var(--bg);border:2px solid var(--line);border-radius:18px;padding:1rem;display:flex;flex-direction:column;align-items:center;gap:.5rem}
+  .jway h3{margin:0;font-size:1.05rem}
+  .jway .bigcode{margin:.2rem 0;font-size:4.2rem;border-width:2px}
+  .jway .note{margin:0;font-size:.85rem}
+  .qrbox{background:#fff;border-radius:12px;padding:10px;line-height:0}
+  .qrbox canvas,.qrbox img{width:11rem !important;height:11rem !important;image-rendering:pixelated}
+  .qrfail{color:#9fb3c6;font-size:.85rem;word-break:keep-all;padding:1rem 0}
   .qacts{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:14px 0}
 </style>
 </head>
@@ -212,6 +225,7 @@
       <button class="btn big" data-go="localSetup">로컬 게임</button>
       <button class="btn big" data-go="onlineSetup">온라인 게임</button>
       <button class="btn big" data-go="classSetup">🏫 교실 모드</button>
+      <button class="btn ghost" data-go="joinScreen">🙋 코드로 참여하기</button>
       <button class="btn ghost" data-rules>게임 방법</button>
     </div>
   </div>
@@ -247,6 +261,24 @@
         <div class="row"><input type="text" id="onCode" maxlength="4" placeholder="ABCD" style="flex:1;text-transform:uppercase"><button class="btn" id="onJoin">입장</button></div>
       </div>
       <p class="note">2~10명이 각자 기기로 함께할 수 있어요.</p>
+    </div>
+  </div>
+  <footer class="credit">made by m00n</footer>
+</section>
+
+<!-- 학생 참여 (QR로 들어오거나 코드 입력) -->
+<section id="joinScreen" class="screen">
+  <div class="bar"><button class="btn ghost small" data-go="home">← 처음으로</button><span class="sp"></span><button class="btn ghost small" data-rules>게임 방법</button></div>
+  <div class="wrap">
+    <div class="panel join-panel">
+      <h2 style="text-align:center">🙋 게임 참여하기</h2>
+      <p class="note" id="jnLead" style="text-align:center;margin-top:0">칠판에 나온 방 코드 4글자를 입력하세요</p>
+      <div class="field"><label for="jnCode">방 코드</label>
+        <input type="text" id="jnCode" class="jn-code" maxlength="4" placeholder="ABCD" autocomplete="off" autocapitalize="characters" spellcheck="false"></div>
+      <div class="field"><label for="jnName">내 이름</label>
+        <input type="text" id="jnName" maxlength="10" placeholder="이름 (10자까지)" autocomplete="off" style="width:100%"></div>
+      <button class="btn big" id="jnGo" style="width:100%">참여하기</button>
+      <p class="note" style="text-align:center">같은 반에 이름이 같은 친구가 있으면 번호나 성을 붙여 주세요</p>
     </div>
   </div>
   <footer class="credit">made by m00n</footer>
@@ -1879,11 +1911,17 @@ $('#onCreate').onclick = async () => {
     enterRoom(code);
   }catch(e){ toast('방을 만들지 못했어요: ' + e.message); }
 };
-$('#onJoin').onclick = async () => {
-  if(!fbReady()) return toast('firebaseConfig를 먼저 채워 주세요');
+$('#onJoin').onclick = () => {
   const name = getName(); if(!name) return;
-  const code = $('#onCode').value.trim().toUpperCase();
+  joinRoom($('#onCode').value, name);
+};
+let joining = false;
+async function joinRoom(rawCode, name){
+  if(!fbReady()) return toast('firebaseConfig를 먼저 채워 주세요');
+  const code = String(rawCode||'').trim().toUpperCase();
   if(code.length !== 4) return toast('4글자 방 코드를 입력해 주세요');
+  if(joining) return;
+  joining = true;
   try{
     const sn = await db.ref(P_ROOM+'/'+code).get();
     if(!sn.exists()) return toast('그런 방이 없어요. 코드를 확인해 주세요');
@@ -1897,6 +1935,8 @@ $('#onJoin').onclick = async () => {
       if(r.players[myId]){ r.players[myId].name = name; r.players[myId].online = true; why=''; return r; }
       if(r.status !== 'lobby'){ why = '이미 게임이 시작된 방이에요'; return; }
       if(Object.keys(r.players).length >= cap){ why = `방이 가득 찼어요 (최대 ${cap}명)`; return; }
+      /* 교실에서 같은 이름이 둘이면 칠판에서 누가 누군지 헷갈린다 */
+      if(Object.values(r.players).some(p => p && nk(p.name) === nk(name))){ why = '같은 이름이 벌써 있어요. 번호나 성을 붙여 주세요'; return; }
       r.players[myId] = { name, t:Date.now(), online:true };
       why = '';
       return r;
@@ -1906,7 +1946,8 @@ $('#onJoin').onclick = async () => {
     if(!rr || !rr.players || !rr.players[myId]) return toast('들어가지 못했어요. 다시 해 주세요');
     enterRoom(code);
   }catch(e){ toast('들어가지 못했어요: ' + e.message); }
-};
+  finally{ joining = false; }
+}
 function enterRoom(code){
   MODE='online'; ROOM=code; roomRef=db.ref(P_ROOM+'/'+code); G=null; ME=-1;
   /* 칠판은 참가자가 아니므로 players 에 자리를 만들지 않는다 */
@@ -2011,7 +2052,27 @@ function maybeMoveHost(){
     if(!e && done) toast('방장이 오래 안 보여서 내가 방장이 됐어요');
   }, false);
 }
-function joinLink(){ return location.origin + location.pathname + '?room=' + ROOM; }
+function siteLink(){ return location.origin + location.pathname; }
+function joinLink(){ return siteLink() + '?room=' + ROOM; }
+/* QR 은 한 번만 만들어 두고, 대기실을 다시 그릴 때마다 그 요소를 옮겨 붙인다 (학생이 들어올 때마다 깜빡이지 않게) */
+let qrCache = { text:'', el:null };
+function qrFor(text){
+  if(qrCache.text === text && qrCache.el) return qrCache.el;
+  const box = document.createElement('div');
+  if(isFile){
+    box.className = 'qrfail';
+    box.textContent = '파일로 열면 QR을 만들 수 없어요. 깃허브 페이지스 주소로 열어 주세요';
+  } else if(typeof QRCode === 'undefined'){
+    box.className = 'qrfail';
+    box.textContent = 'QR을 불러오지 못했어요. 오른쪽 코드로 참여해 주세요';
+  } else {
+    box.className = 'qrbox';
+    try{ new QRCode(box, { text, width:256, height:256, colorDark:'#000000', colorLight:'#ffffff', correctLevel:QRCode.CorrectLevel.M }); }
+    catch(e){ box.className = 'qrfail'; box.textContent = 'QR을 만들지 못했어요. 오른쪽 코드로 참여해 주세요'; }
+  }
+  qrCache = { text, el:box };
+  return box;
+}
 /* 칠판용 대기실 — 방 코드를 크게 띄우고 들어온 모둠을 보여 준다 */
 function renderBoardLobby(){
   const r = RD, ps = Object.entries(r.players||{}).sort((a,b)=>a[1].t-b[1].t);
@@ -2021,14 +2082,25 @@ function renderBoardLobby(){
   $('#lobbyBody').innerHTML = `
     <div class="bl">
       <h2>🏫 ${solo ? '칠판 + 개인 기기' : '칠판 + 모둠 기기'}</h2>
-      <p class="note">아래 주소로 들어가 <b>방 코드</b>를 입력하세요</p>
-      <p class="joinurl">${esc(joinLink())}</p>
-      <div class="bigcode">${ROOM}</div>
+      <div class="jwrap">
+        <div class="jway">
+          <h3>📷 QR로 참여</h3>
+          <div id="blQr"></div>
+          <p class="note">카메라로 찍으면 코드가 채워진 채로 열려요</p>
+        </div>
+        <div class="jway">
+          <h3>⌨️ 코드로 참여</h3>
+          <p class="joinurl">${esc(siteLink())}</p>
+          <div class="bigcode">${ROOM}</div>
+          <p class="note">위 주소 → <b>🙋 코드로 참여하기</b> → 코드 입력</p>
+        </div>
+      </div>
       <p class="bl-cap">${ps.length}${unit} 들어옴 (최대 ${cap}${unit}) · 2${unit} 이상이면 시작할 수 있어요</p>
       <ul class="teamlist">${ps.length ? ps.map(([id,p])=>`<li>${esc(p.name)}</li>`).join('') : '<li style="border-style:dashed;color:#9fb3c6;font-weight:700">아직 아무도 없어요</li>'}</ul>
       <div class="lbacts"><button class="btn big" id="lbStart" ${ps.length<2?'disabled':''}>게임 시작</button>
       <button class="btn ghost small" id="lbCopy">초대 링크 복사</button></div>
     </div>`;
+  $('#blQr').appendChild(qrFor(joinLink()));
   $('#lbCopy').onclick = () => { const l=joinLink(); navigator.clipboard ? navigator.clipboard.writeText(l).then(()=>toast('링크를 복사했어요'), ()=>toast(l)) : toast(l); };
   $('#lbStart').onclick = () => {
     const list = ps.slice(0, cap).map(([id,p]) => ({ id, name:p.name }));
@@ -2132,6 +2204,37 @@ function savedRoom(){
     return v;
   }catch(e){ return null; }
 }
+/* ---------- 학생 참여 화면 (QR 또는 코드 입력) ---------- */
+function prepJoin(){
+  const url = new URLSearchParams(location.search).get('room');
+  const code = $('#jnCode');
+  if(url) code.value = url.toUpperCase().replace(/[^A-Z]/g,'').slice(0,4);
+  code.classList.toggle('filled', code.value.length === 4);
+  $('#jnLead').textContent = (code.value.length === 4)
+    ? '방 코드가 채워져 있어요. 이름만 적고 참여하세요'
+    : '칠판에 나온 방 코드 4글자를 입력하세요';
+  $('#jnName').value = store.get('ht_name') || '';
+  setTimeout(() => (code.value.length === 4 ? $('#jnName') : code).focus(), 50);
+}
+$('#jnCode').addEventListener('input', e => {
+  const i = e.target, v = i.value.toUpperCase().replace(/[^A-Z]/g,'').slice(0,4);
+  if(i.value !== v) i.value = v;
+  i.classList.toggle('filled', v.length === 4);
+  if(v.length === 4) $('#jnName').focus();          // 4글자를 다 치면 이름 칸으로
+});
+function doJoinScreen(){
+  const name = $('#jnName').value.trim();
+  if(!name){ toast('이름을 입력해 주세요'); $('#jnName').focus(); return; }
+  store.set('ht_name', name);
+  joinRoom($('#jnCode').value, name);
+}
+$('#jnGo').onclick = doJoinScreen;
+['#jnCode','#jnName'].forEach(sel => $(sel).addEventListener('keydown', e => {
+  if(e.key !== 'Enter' || e.isComposing || e.keyCode === 229) return;
+  e.preventDefault();
+  if(sel === '#jnCode') $('#jnName').focus(); else doJoinScreen();
+}));
+
 function prepOnline(){
   $('#fbWarn').hidden = fbReady();
   $('#onName').value = store.get('ht_name') || '';
@@ -2410,6 +2513,7 @@ function goTo(id){
   closeOverlays();
   if(id === 'localSetup') buildLocalSetup();
   if(id === 'onlineSetup') prepOnline();
+  if(id === 'joinScreen') prepJoin();
   if(id === 'classSetup') buildClassSetup();
   if(id === 'home'){ MODE = null; G = null; stopPlay(); $('#onAirBox').classList.remove('on'); classReset(); }
   show(id);
@@ -2544,7 +2648,7 @@ if(isFile){
 }
 {
   const url = new URLSearchParams(location.search).get('room');
-  if(url){ prepOnline(); show('onlineSetup'); }
+  if(url){ prepJoin(); show('joinScreen'); }   /* QR·초대 링크로 들어오면 바로 참여 화면 */
 }
 window.addEventListener('beforeunload', () => { try{ stopPresence(); }catch(e){} });
 </script>
