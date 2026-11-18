@@ -943,6 +943,21 @@ const P_ROOM = 'hitster/rooms', P_PRES = 'hitster/pres', P_CHAT = 'hitster/chat'
     {t:"Drowning", a:"우즈 (WOODZ)", y:2025, l:"YWJZfyxz-b0"},   /* 팝 록 · 2025년 발표 · 1theK 공식 M/V */
     {t:"Soda Pop", a:"사자보이즈 (Saja Boys)", y:2025, l:"hAyPTJFgFEs"},   /* 애니메이션 '케이팝 데몬 헌터스' OST · 2025년 · Netflix 공식 Lyric Video */
     {t:"How It's Done", a:"HUNTR/X", y:2025, l:"QGsevnbItdU"},   /* 애니메이션 '케이팝 데몬 헌터스' OST · 2025년 · Sony Animation 공식 Lyric Video */
+    /* ---- 추가 K-POP (700곡 맞추기) — ?check 로 확인 ---- */
+    {t:"After LIKE", a:"IVE (아이브)", y:2022, l:"F0B7HDiY-10"},
+    {t:"OMG", a:"뉴진스 (NewJeans)", y:2023, l:"_ZAgIHmHLdc"},
+    {t:"Lion Heart", a:"소녀시대 (Girls' Generation)", y:2015, l:"nVCubhQ454c"},
+    {t:"Psycho", a:"레드벨벳 (Red Velvet)", y:2019, l:"uR8Mrt1IpXg"},
+    {t:"Feel My Rhythm", a:"레드벨벳 (Red Velvet)", y:2022, l:"R9At2ICm4LQ"},
+    {t:"Shut Down", a:"블랙핑크 (BLACKPINK)", y:2022, l:"POe9SOEKotk"},
+    {t:"Standing Next to You", a:"정국 (Jung Kook)", y:2023, l:"UNo0TG9LwwI"},
+    {t:"Love wins all", a:"아이유 (IU)", y:2024, l:"JleoAppaxi0"},
+    {t:"Spicy", a:"에스파 (aespa)", y:2023, l:"Os_heh8vPfs"},
+    {t:"MANIAC", a:"스트레이 키즈 (Stray Kids)", y:2022, l:"OvioeS1ZZ7o"},
+    {t:"소리꾼 (Thunderous)", a:"스트레이 키즈 (Stray Kids)", y:2021, l:"EaswWiwMVs8"},
+    {t:"시간을 달려서 (Rough)", a:"여자친구 (GFRIEND)", y:2016, l:"0VKcLPdY9lI"},
+    {t:"오늘부터 우리는 (Me Gustas Tu)", a:"여자친구 (GFRIEND)", y:2015, l:"YYHyAIFG3iI"},
+    {t:"FEARLESS", a:"르세라핌 (LE SSERAFIM)", y:2022, l:"4vbDFu0PUew"},
   ].filter(s => s.l);   /* 영상 ID(l)가 비어 있는 곡은 아직 준비 중이라 게임에서 뺀다 */
 
 /* =========================================================
@@ -1117,6 +1132,25 @@ const POP_SONGS = [
     {t:"Calm Down", a:"Rema & Selena Gomez (레마, 셀레나 고메즈)", y:2022, l:"WcIcVapfqXw"},
     {t:"Dance The Night", a:"Dua Lipa (두아 리파)", y:2023, l:"OiC1rgCPmUQ"},   /* 영화 '바비' OST */
     {t:"Beautiful Things", a:"Benson Boone (벤슨 분)", y:2024, l:"Oa_RSwwpPaA"},
+    /* ---- 추가 팝송 (700곡 맞추기) ---- */
+    {t:"Bleeding Love", a:"Leona Lewis (리오나 루이스)", y:2007, l:"Vzo-EL_62fQ"},
+    {t:"Little Talks", a:"Of Monsters and Men (오브 몬스터스 앤 맨)", y:2011, l:"ghb6eDopW8I"},
+    {t:"Ho Hey", a:"The Lumineers (루미니어스)", y:2012, l:"zvCBSSwgtg4"},
+    {t:"Hall of Fame", a:"The Script ft. will.i.am (스크립트)", y:2012, l:"mk48xRzuNvA"},
+    {t:"Let Her Go", a:"Passenger (패신저)", y:2012, l:"RBumgq5yVrA"},
+    {t:"Safe and Sound", a:"Capital Cities (캐피털 시티즈)", y:2013, l:"47dtFZ8CFo8"},
+    {t:"Pompeii", a:"Bastille (배스틸)", y:2013, l:"F90Cw4l-8NY"},
+    {t:"Riptide", a:"Vance Joy (밴스 조이)", y:2013, l:"uJ_1HMAGb4k"},
+    {t:"Rather Be", a:"Clean Bandit ft. Jess Glynne (클린 밴딧)", y:2014, l:"m-M1AtrxztU"},
+    {t:"Shut Up and Dance", a:"WALK THE MOON (워크 더 문)", y:2014, l:"6JCLY0Rlx6Q"},
+    {t:"A Sky Full of Stars", a:"Coldplay (콜드플레이)", y:2014, l:"VPRjCeoBqrI"},
+    {t:"Love Me Like You Do", a:"Ellie Goulding (엘리 굴딩)", y:2015, l:"AJtDXIazrMo"},
+    {t:"Cheerleader", a:"OMI (오미)", y:2015, l:"jGflUbPQfW8"},
+    {t:"Stressed Out", a:"Twenty One Pilots (트웬티 원 파일럿츠)", y:2015, l:"pXRviuL6vMY"},
+    {t:"Hymn for the Weekend", a:"Coldplay (콜드플레이)", y:2016, l:"YykjpeuMNEk"},
+    {t:"Castle on the Hill", a:"Ed Sheeran (에드 시런)", y:2017, l:"K0ibBPhiaG0"},
+    {t:"Sunflower", a:"Post Malone & Swae Lee (포스트 말론)", y:2018, l:"ApXoWvfEYVU"},
+    {t:"Sucker", a:"Jonas Brothers (조나스 브라더스)", y:2019, l:"CnAmeh0-E-U"},
   ];
 /* K-POP 목록 뒤에 붙인다 — 기존 곡 번호(카드 번호)가 바뀌지 않게 반드시 '뒤에' 붙일 것 */
 POP_SONGS.forEach(sg => { sg.g = 'pop'; initialSongData.push(sg); });
