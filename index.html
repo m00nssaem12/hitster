@@ -241,6 +241,7 @@
       <p class="note">기기 하나로 번갈아 가며 해요. 차례가 된 사람이 화면을 보고 카드를 놓으면 됩니다.</p>
       <div class="field"><label>인원</label><div class="count" id="lcCount"></div></div>
       <div id="lcNames" style="display:grid;gap:8px"></div>
+      <div class="field" style="margin-top:12px"><label>노래 종류</label><div class="opt-row" id="lcMus"></div></div>
       <button class="btn big" id="lcStart" style="width:100%;margin-top:14px">게임 시작</button>
     </div>
   </div>
@@ -294,6 +295,8 @@
       <div id="csWarn" class="warnbox" hidden>②·③번은 인터넷 연결과 <b>firebaseConfig</b>가 필요해요. ①번 모둠 대항은 그대로 할 수 있어요.</div>
       <div class="mode-pick" id="csPick"></div>
       <div id="csOpts"></div>
+      <div class="field"><label>노래 종류</label><div class="opt-row" id="csMus"></div>
+        <p class="note" style="margin:6px 0 0">‘K-POP + 팝송’은 세 곡 중 한 곡쯤 팝송이 나와요. ‘팝송만’은 곡 수가 적어서(<span id="csPopN"></span>곡) 인원이 많으면 중간에 곡이 떨어질 수 있어요.</p></div>
       <div class="field"><label>칠판 글씨 크기</label><div class="opt-row" id="csSize"></div></div>
       <button class="btn big" id="csStart" style="width:100%;margin-top:10px">시작하기</button>
     </div>
@@ -899,7 +902,7 @@ const P_ROOM = 'hitster/rooms', P_PRES = 'hitster/pres', P_CHAT = 'hitster/chat'
     {t:"내 사랑 내 곁에", a:"김현식", y:1991, l:"fnEsPUT3jWI"},   /* 발라드 · 1991년 유작 6집 수록 · Official Audio */
     {t:"흐린 기억 속의 그대", a:"현진영", y:1992, l:"DBR_PL9URaE"},   /* 뉴잭스윙 · 나무위키: 1992-08 2집 'New Dance 2' · 팬 업로드 원곡 음원 — ?check 로 확인 */
     {t:"핑계", a:"김건모", y:1993, l:"_UC9gpiOZE0"},   /* 레게 · 1993년 2집 타이틀곡 · 팬 싱크가사 영상 — ?check 로 확인 */
-    {t:"아주 오래된 연인들", a:"015B (공일오비)", y:1993, l:"Uh0AtTa39hY"},   /* 팝 · 1993년 4집 수록 · 공식 M/V */
+    {t:"아주 오래된 연인들", a:"015B (공일오비)", y:1993, s:62, l:"Uh0AtTa39hY"},   /* 팝 · 1993년 4집 수록 · 공식 M/V — 전주가 길어서 62초부터 (30초부터는 전주만 나옴) */
     {t:"날개 잃은 천사", a:"룰라 (Roo'Ra)", y:1995, l:"3EYjmyJo8oI"},   /* 댄스 · 1995년 2집 타이틀곡 · 팬 업로드 음원 — ?check 로 확인 */
     {t:"캔디 (Candy)", a:"H.O.T.", y:1996, l:"K-5ss_cWGSs"},   /* 댄스 · 1996년 1집 수록 · SMTOWN 공식 M/V */
     {t:"사랑을 위하여", a:"김종환", y:1997, l:"NL-6Grjs6U4"},   /* 발라드 · 1997년 3집 '사랑을 위하여' 타이틀곡 · Official Audio */
@@ -941,6 +944,111 @@ const P_ROOM = 'hitster/rooms', P_PRES = 'hitster/pres', P_CHAT = 'hitster/chat'
     {t:"Soda Pop", a:"사자보이즈 (Saja Boys)", y:2025, l:"hAyPTJFgFEs"},   /* 애니메이션 '케이팝 데몬 헌터스' OST · 2025년 · Netflix 공식 Lyric Video */
     {t:"How It's Done", a:"HUNTR/X", y:2025, l:"QGsevnbItdU"},   /* 애니메이션 '케이팝 데몬 헌터스' OST · 2025년 · Sony Animation 공식 Lyric Video */
   ].filter(s => s.l);   /* 영상 ID(l)가 비어 있는 곡은 아직 준비 중이라 게임에서 뺀다 */
+
+/* =========================================================
+   팝송 (설정에서 'K-POP + 팝송' 또는 '팝송만'을 고르면 나와요)
+   g:'pop' 이 붙은 곡이 팝송. 연도는 싱글 발표 연도 기준.
+   ========================================================= */
+const POP_SONGS = [
+    {t:"Hey Jude", a:"The Beatles (비틀즈)", y:1968, l:"A_MjCqQoLLA"},
+    {t:"Here Comes The Sun", a:"The Beatles (비틀즈)", y:1969, l:"KQetemT1sWc"},
+    {t:"Imagine", a:"John Lennon (존 레논)", y:1971, l:"YkgkThdzX-8"},
+    {t:"Bohemian Rhapsody", a:"Queen (퀸)", y:1975, l:"fJ9rUzIMcZQ"},
+    {t:"Dancing Queen", a:"ABBA (아바)", y:1976, l:"xFrGuyw1V8s"},
+    {t:"We Will Rock You", a:"Queen (퀸)", y:1977, l:"-tJYN-eG1zk"},
+    {t:"Stayin' Alive", a:"Bee Gees (비지스)", y:1977, l:"I_izvAbhExY"},
+    {t:"September", a:"Earth, Wind & Fire (어스 윈드 앤 파이어)", y:1978, l:"Gs069dndIYk"},
+    {t:"Y.M.C.A.", a:"Village People (빌리지 피플)", y:1978, l:"CS9OO0S5w2k"},
+    {t:"Don't Stop Me Now", a:"Queen (퀸)", y:1979, l:"HgzGwKwLmgM"},
+    {t:"Eye of the Tiger", a:"Survivor (서바이버)", y:1982, l:"btPJPFnesV4"},
+    {t:"Africa", a:"TOTO (토토)", y:1982, l:"FTQbiNvZqaY"},
+    {t:"Billie Jean", a:"Michael Jackson (마이클 잭슨)", y:1983, l:"Zi_XLOBDo_Y"},
+    {t:"Beat It", a:"Michael Jackson (마이클 잭슨)", y:1983, l:"oRdxUFDoQe0"},
+    {t:"Girls Just Want to Have Fun", a:"Cyndi Lauper (신디 로퍼)", y:1983, l:"PIb6AZdTr-A"},
+    {t:"Wake Me Up Before You Go-Go", a:"Wham! (왬)", y:1984, l:"pIgZ7gMze7A"},
+    {t:"Last Christmas", a:"Wham! (왬)", y:1984, l:"E8gmARGvPlI"},
+    {t:"Take On Me", a:"a-ha (아하)", y:1985, l:"djV11Xbc914"},
+    {t:"Livin' on a Prayer", a:"Bon Jovi (본 조비)", y:1986, l:"lDK9QqIzhwk"},
+    {t:"Never Gonna Give You Up", a:"Rick Astley (릭 애슬리)", y:1987, l:"dQw4w9WgXcQ"},
+    {t:"Black or White", a:"Michael Jackson (마이클 잭슨)", y:1991, l:"F2AitTPI5U0"},
+    {t:"I Will Always Love You", a:"Whitney Houston (휘트니 휴스턴)", y:1992, l:"3JWTaaS7LdU"},
+    {t:"All I Want for Christmas Is You", a:"Mariah Carey (머라이어 캐리)", y:1994, l:"yXQViqx6GMY"},
+    {t:"Wannabe", a:"Spice Girls (스파이스 걸스)", y:1996, l:"gJLIiF15wjQ"},
+    {t:"Barbie Girl", a:"Aqua (아쿠아)", y:1997, l:"ZyhrYis509A"},
+    {t:"My Heart Will Go On", a:"Celine Dion (셀린 디온)", y:1997, l:"WNIPqafd4As"},   /* 영화 '타이타닉' 주제가 — ?check 로 확인 */
+    {t:"...Baby One More Time", a:"Britney Spears (브리트니 스피어스)", y:1998, l:"C-u5WLJ9Yk4"},
+    {t:"I Want It That Way", a:"Backstreet Boys (백스트리트 보이즈)", y:1999, l:"4fndeDfaWCg"},
+    {t:"Livin' la Vida Loca", a:"Ricky Martin (리키 마틴)", y:1999, l:"p47fEXGabaY"},
+    {t:"Yellow", a:"Coldplay (콜드플레이)", y:2000, l:"yKNxeF4KMsY"},
+    {t:"It's My Life", a:"Bon Jovi (본 조비)", y:2000, l:"vx2u5uUu3DE"},
+    {t:"Complicated", a:"Avril Lavigne (에이브릴 라빈)", y:2002, l:"5NPBIwQyPWE"},
+    {t:"Hey Ya!", a:"OutKast (아웃캐스트)", y:2003, l:"PWgvGjAhvIw"},
+    {t:"Mr. Brightside", a:"The Killers (킬러스)", y:2004, l:"gGdGFtwCNBE"},
+    {t:"Umbrella", a:"Rihanna (리한나)", y:2007, l:"CvBfHwUxHIk"},
+    {t:"Girlfriend", a:"Avril Lavigne (에이브릴 라빈)", y:2007, l:"Bg59q4puhmg"},
+    {t:"Viva La Vida", a:"Coldplay (콜드플레이)", y:2008, l:"dvgZkm1xWPE"},
+    {t:"Poker Face", a:"Lady Gaga (레이디 가가)", y:2008, l:"bESGLojNYSo"},
+    {t:"Love Story", a:"Taylor Swift (테일러 스위프트)", y:2008, l:"8xg3vE8Ie_E"},
+    {t:"Single Ladies", a:"Beyoncé (비욘세)", y:2008, l:"4m1EFMoRFvY"},
+    {t:"I Gotta Feeling", a:"Black Eyed Peas (블랙 아이드 피스)", y:2009, l:"uSD4vsh1zDA"},
+    {t:"Bad Romance", a:"Lady Gaga (레이디 가가)", y:2009, l:"qrO4YZeyl0I"},
+    {t:"Party in the U.S.A.", a:"Miley Cyrus (마일리 사이러스)", y:2009, l:"M11SvDtPBhA"},
+    {t:"Baby", a:"Justin Bieber (저스틴 비버)", y:2010, l:"kffacxfA7G4"},
+    {t:"Just the Way You Are", a:"Bruno Mars (브루노 마스)", y:2010, l:"LjhCEhWiKXk"},
+    {t:"Firework", a:"Katy Perry (케이티 페리)", y:2010, l:"QGJuMBdaqIw"},
+    {t:"Rolling in the Deep", a:"Adele (아델)", y:2010, l:"rYEDA3JcQqw"},
+    {t:"Someone Like You", a:"Adele (아델)", y:2011, l:"hLQl3WQQoQ0"},
+    {t:"Somebody That I Used to Know", a:"Gotye (고티에)", y:2011, l:"8UVNT4wvIGY"},
+    {t:"Party Rock Anthem", a:"LMFAO (엘엠에프에이오)", y:2011, l:"KQ6zr6kCPj8"},
+    {t:"What Makes You Beautiful", a:"One Direction (원 디렉션)", y:2011, l:"QJO3ROT-A4E"},
+    {t:"Call Me Maybe", a:"Carly Rae Jepsen (칼리 레이 젭슨)", y:2012, l:"fWNaR-rxAic"},
+    {t:"Roar", a:"Katy Perry (케이티 페리)", y:2013, l:"CevxZvSJLk8"},
+    {t:"Happy", a:"Pharrell Williams (퍼렐 윌리엄스)", y:2013, l:"ZbZSe6N_BXs"},
+    {t:"Wake Me Up", a:"Avicii (아비치)", y:2013, l:"IcrbM1l_BoI"},
+    {t:"Counting Stars", a:"OneRepublic (원리퍼블릭)", y:2013, l:"hT_nvWreIhg"},
+    {t:"Get Lucky", a:"Daft Punk (다프트 펑크)", y:2013, l:"5NV6Rdv1a3I"},
+    {t:"Let It Go", a:"Idina Menzel (이디나 멘젤)", y:2013, l:"L0MK7qz13bU"},   /* 애니메이션 '겨울왕국' OST — ?check 로 확인 */
+    {t:"Shake It Off", a:"Taylor Swift (테일러 스위프트)", y:2014, l:"nfWlot6h_JM"},
+    {t:"Blank Space", a:"Taylor Swift (테일러 스위프트)", y:2014, l:"e-ORhEE9VVg"},
+    {t:"Uptown Funk", a:"Mark Ronson ft. Bruno Mars (마크 론슨, 브루노 마스)", y:2014, l:"OPf0YbXqDm0"},
+    {t:"Thinking Out Loud", a:"Ed Sheeran (에드 시런)", y:2014, l:"lp-EO5I60KA"},
+    {t:"Chandelier", a:"Sia (시아)", y:2014, l:"2vjPBrBU-TM"},
+    {t:"All About That Bass", a:"Meghan Trainor (메건 트레이너)", y:2014, l:"7PCkvCPvDXk"},
+    {t:"Hello", a:"Adele (아델)", y:2015, l:"YQHsXMglC9A"},
+    {t:"See You Again", a:"Wiz Khalifa ft. Charlie Puth (위즈 칼리파, 찰리 푸스)", y:2015, l:"RgKAFK5djSk"},
+    {t:"Sugar", a:"Maroon 5 (마룬 5)", y:2015, l:"09R8_2nJtjg"},
+    {t:"Lean On", a:"Major Lazer & DJ Snake (메이저 레이저)", y:2015, l:"YqeW9_5kURI"},
+    {t:"7 Years", a:"Lukas Graham (루카스 그레이엄)", y:2015, l:"LHCob76kigA"},
+    {t:"Can't Stop the Feeling!", a:"Justin Timberlake (저스틴 팀버레이크)", y:2016, l:"ru0K8uYEZWw"},
+    {t:"24K Magic", a:"Bruno Mars (브루노 마스)", y:2016, l:"UqyT8IEBkvY"},
+    {t:"Shape of You", a:"Ed Sheeran (에드 시런)", y:2017, l:"JGwWNGJdvx8"},
+    {t:"Despacito", a:"Luis Fonsi ft. Daddy Yankee (루이스 폰시)", y:2017, l:"kJQP7kiw5Fk"},
+    {t:"Believer", a:"Imagine Dragons (이매진 드래곤스)", y:2017, l:"7wtfhZwyrcc"},
+    {t:"Perfect", a:"Ed Sheeran (에드 시런)", y:2017, l:"2Vv-BfVoq4g"},
+    {t:"Attention", a:"Charlie Puth (찰리 푸스)", y:2017, l:"nfs8NYg7yQM"},
+    {t:"Havana", a:"Camila Cabello (카밀라 카베요)", y:2017, l:"BQ0mxQXmLsk"},
+    {t:"This Is Me", a:"Keala Settle (킬라 세틀)", y:2017, l:"XLFEvHWD_NE"},   /* 영화 '위대한 쇼맨' OST */
+    {t:"Shallow", a:"Lady Gaga & Bradley Cooper (레이디 가가)", y:2018, l:"bo_efYhYU2A"},
+    {t:"thank u, next", a:"Ariana Grande (아리아나 그란데)", y:2018, l:"gl1aHhXnN1k"},
+    {t:"bad guy", a:"Billie Eilish (빌리 아일리시)", y:2019, l:"DyDfgMOUjCI"},
+    {t:"Blinding Lights", a:"The Weeknd (위켄드)", y:2019, l:"4NRXx6U8ABQ"},
+    {t:"Don't Start Now", a:"Dua Lipa (두아 리파)", y:2019, l:"oygrmJFKYZY"},
+    {t:"Memories", a:"Maroon 5 (마룬 5)", y:2019, l:"SlPhMPnQ58k"},
+    {t:"Dance Monkey", a:"Tones and I (톤즈 앤 아이)", y:2019, l:"q0hyYWKXF0Q"},
+    {t:"Levitating", a:"Dua Lipa (두아 리파)", y:2020, l:"TUVcZfQe-Kw"},
+    {t:"drivers license", a:"Olivia Rodrigo (올리비아 로드리고)", y:2021, l:"ZmDBbnmKpqQ"},
+    {t:"STAY", a:"The Kid LAROI & Justin Bieber (저스틴 비버)", y:2021, l:"kTJczUoc26U"},
+    {t:"Easy On Me", a:"Adele (아델)", y:2021, l:"U3ASj1L6_sY"},
+    {t:"As It Was", a:"Harry Styles (해리 스타일스)", y:2022, l:"H5v3kku4y6Q"},
+    {t:"Anti-Hero", a:"Taylor Swift (테일러 스위프트)", y:2022, l:"b1kbLwvqugk"},
+    {t:"Flowers", a:"Miley Cyrus (마일리 사이러스)", y:2023, l:"G7KNmW9a75Y"},
+    {t:"What Was I Made For?", a:"Billie Eilish (빌리 아일리시)", y:2023, l:"cW8VLC9nnTo"},   /* 영화 '바비' OST */
+    {t:"Espresso", a:"Sabrina Carpenter (사브리나 카펜터)", y:2024, l:"eVli-tstM5E"},
+    {t:"Die With A Smile", a:"Lady Gaga & Bruno Mars (레이디 가가, 브루노 마스)", y:2024, l:"kPa7bsKwL-c"},
+    {t:"BIRDS OF A FEATHER", a:"Billie Eilish (빌리 아일리시)", y:2024, l:"V9PVRfjEBTI"},
+  ];
+/* K-POP 목록 뒤에 붙인다 — 기존 곡 번호(카드 번호)가 바뀌지 않게 반드시 '뒤에' 붙일 것 */
+POP_SONGS.forEach(sg => { sg.g = 'pop'; initialSongData.push(sg); });
 /* ---------------- 공통 도구 ---------------- */
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1025,26 +1133,47 @@ function norm(s){
   if(s.winner==null) s.winner=null;
   if(!s.last) s.last=null;
   s.seq=s.seq|0; s.turn=s.turn|0; s.placer=s.placer|0; s.win=(s.win|0)||WIN_CARDS;
-  s.pts=!!s.pts; s.gmode=(s.gmode==='rounds')?'rounds':'cards';
+  s.mus=normMus(s.mus); s.pts=!!s.pts; s.gmode=(s.gmode==='rounds')?'rounds':'cards';
   s.rounds=s.rounds|0; s.left=s.left|0; s.turnAt=s.turnAt|0; s.placeAt=s.placeAt|0;
   if(s.claim===undefined) s.claim=null;
   if(s.claim && typeof s.claim==='object') s.claim={ ti:s.claim.ti||'', ar:s.claim.ar||'' };
   if(s.judge==null) s.judge=null;
   return s;
 }
-function shuffled(){
-  const idx = initialSongData.map((s,i)=>i).filter(i=>!badIds.has(initialSongData[i].l));
-  for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [idx[i],idx[j]]=[idx[j],idx[i]]; }
-  return idx;
+/* 노래 종류 — kpop: K-POP만 · mix: K-POP + 팝송 · pop: 팝송만 */
+const MUS_OPTS = [{v:'kpop',t:'🇰🇷 K-POP만'},{v:'mix',t:'🌏 K-POP + 팝송'},{v:'pop',t:'🌎 팝송만'}];
+const MUS_LABEL = { kpop:'K-POP', mix:'K-POP + 팝송', pop:'팝송' };
+const normMus = v => (v === 'mix' || v === 'pop') ? v : 'kpop';
+/* 마지막으로 고른 노래 종류 (기기에 저장) */
+let musPref = normMus(store.get('ht_mus'));
+function setMusPref(v){ musPref = normMus(v); store.set('ht_mus', musPref); }
+
+const MIX_POP = 0.35;   // 'K-POP + 팝송'에서 팝송이 나올 비율 (K-POP 곡 수가 훨씬 많아서 비율을 맞춰 섞는다)
+function shuf(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function shuffled(mus){
+  mus = normMus(mus);
+  const ok = initialSongData.map((s,i)=>i).filter(i=>!badIds.has(initialSongData[i].l));
+  const kp = shuf(ok.filter(i => initialSongData[i].g !== 'pop'));
+  const pp = shuf(ok.filter(i => initialSongData[i].g === 'pop'));
+  if(mus === 'kpop') return kp;
+  if(mus === 'pop') return pp;
+  /* 섞기: 뽑는 순서대로 팝송을 약 35% 비율로 끼워 넣고, 팝송이 다 떨어지면 K-POP만 남는다.
+     카드는 덱 끝에서 뽑으므로(pop) 다 만든 뒤 뒤집는다 */
+  const order = [];
+  while(kp.length || pp.length){
+    const takePop = pp.length && (!kp.length || Math.random() < MIX_POP);
+    order.push(takePop ? pp.pop() : kp.pop());
+  }
+  return order.reverse();
 }
-/* opt = { win, pts, gmode:'cards'|'rounds', rounds, now } */
+/* opt = { win, pts, gmode:'cards'|'rounds', rounds, now, mus:'kpop'|'mix'|'pop' } */
 function newGame(list, opt){
   opt = opt || {};
-  const deck = shuffled();
+  const deck = shuffled(opt.mus);
   const players = list.map(p => ({ id:p.id, name:p.name, cards:[deck.pop()], tokens:START_TOKENS, score:0 }));
   const rounds = Math.max(1, opt.rounds|0);
   return norm({
-    gameId: Math.random().toString(36).slice(2,9), seq:0, win: (opt.win|0) || WIN_CARDS,
+    gameId: Math.random().toString(36).slice(2,9), seq:0, win: (opt.win|0) || WIN_CARDS, mus: normMus(opt.mus),
     pts: !!opt.pts, gmode: (opt.gmode === 'rounds') ? 'rounds' : 'cards', rounds,
     left: (opt.gmode === 'rounds') ? rounds * list.length : 0,
     turnAt: opt.now || 0, placeAt: 0,
@@ -1845,7 +1974,7 @@ function showOver(){
 }
 function restartGame(){
   const list = G.players.map(p=>({id:p.id,name:p.name}));
-  const opt = { win:winOf(G), pts:G.pts, gmode:G.gmode, rounds:G.rounds, now:(MODE==='online'?serverNow():Date.now()) };
+  const opt = { win:winOf(G), pts:G.pts, gmode:G.gmode, rounds:G.rounds, mus:G.mus, now:(MODE==='online'?serverNow():Date.now()) };
   if(MODE === 'local'){ G = newGame(list, opt); renderGame(); }
   else if(RD && RD.host === myId){ roomRef.update({ state: newGame(list, opt) }); }
 }
@@ -1855,6 +1984,8 @@ function restartGame(){
    ========================================================= */
 let lcN = 2;
 function buildLocalSetup(){
+  const pickMus = v => { setMusPref(v); csBtnRow($('#lcMus'), MUS_OPTS, musPref, pickMus); };
+  csBtnRow($('#lcMus'), MUS_OPTS, musPref, pickMus);
   const box = $('#lcCount'); box.innerHTML = '';
   for(let n=1; n<=10; n++){
     const b = document.createElement('button');
@@ -1877,7 +2008,7 @@ $('#lcStart').onclick = () => {
   const names = [...$('#lcNames').querySelectorAll('input')].map((inp,i) =>
     inp.value.trim() || (lcN === 1 ? '나' : '플레이어 ' + (i+1)));
   MODE = 'local'; ME = -1; ROOM = null; RD = null;
-  G = newGame(names.map((n,i) => ({ id:'L'+i, name:n })));
+  G = newGame(names.map((n,i) => ({ id:'L'+i, name:n })), { mus:musPref });
   $('#chatBtn').classList.remove('on');
   closeOverlays(); show('game'); renderGame();
 };
@@ -1907,7 +2038,7 @@ $('#onCreate').onclick = async () => {
   try{
     let code = genCode();
     for(let k=0;k<6;k++){ const sn = await db.ref(P_ROOM+'/'+code).get(); if(!sn.exists()) break; code = genCode(); }
-    await db.ref(P_ROOM+'/'+code).set({ host:myId, status:'lobby', created:TS(), players:{ [myId]:{ name, t:Date.now(), online:true } } });
+    await db.ref(P_ROOM+'/'+code).set({ host:myId, status:'lobby', created:TS(), mus:musPref, players:{ [myId]:{ name, t:Date.now(), online:true } } });
     enterRoom(code);
   }catch(e){ toast('방을 만들지 못했어요: ' + e.message); }
 };
@@ -2095,7 +2226,7 @@ function renderBoardLobby(){
           <p class="note">위 주소 → <b>🙋 코드로 참여하기</b> → 코드 입력</p>
         </div>
       </div>
-      <p class="bl-cap">${ps.length}${unit} 들어옴 (최대 ${cap}${unit}) · 2${unit} 이상이면 시작할 수 있어요</p>
+      <p class="bl-cap">${ps.length}${unit} 들어옴 (최대 ${cap}${unit}) · 2${unit} 이상이면 시작할 수 있어요 · 🎵 ${MUS_LABEL[normMus(r.mus)]}</p>
       <ul class="teamlist">${ps.length ? ps.map(([id,p])=>`<li>${esc(p.name)}</li>`).join('') : '<li style="border-style:dashed;color:#9fb3c6;font-weight:700">아직 아무도 없어요</li>'}</ul>
       <div class="lbacts"><button class="btn big" id="lbStart" ${ps.length<2?'disabled':''}>게임 시작</button>
       <button class="btn ghost small" id="lbCopy">초대 링크 복사</button></div>
@@ -2106,7 +2237,7 @@ function renderBoardLobby(){
     const list = ps.slice(0, cap).map(([id,p]) => ({ id, name:p.name }));
     if(list.length < 2) return toast('2' + unit + ' 이상 있어야 해요');
     /* 개인전에서만 카훗식 점수를 켠다 */
-    const opt = { win:r.win, now:serverNow() };
+    const opt = { win:r.win, mus:r.mus, now:serverNow() };
     if(solo){ opt.pts = true; opt.gmode = r.gmode || 'cards'; opt.rounds = r.rounds || 4; }
     roomRef.transaction(rr => {
       if(!rr || rr.status !== 'lobby') return;
@@ -2128,17 +2259,21 @@ function renderLobby(){
     <div class="row"><button class="btn ghost small" id="lbCopy">초대 링크 복사</button></div>
     <ul class="plist">${ps.map(([id,p])=>`<li><span class="dot ${presCls(id)}" data-pid="${esc(id)}"></span>${esc(p.name)}${id===r.host?' <span class="tag">방장</span>':''}${id===myId?' <span class="tag">나</span>':''}</li>`).join('')}</ul>
     <p class="note">${r.classMode ? `${ps.length}명 참가 중` : `${ps.length}/10명 · 2명 이상이면 시작할 수 있어요.`}</p>
+    ${(!r.classMode && isHost) ? '<div class="field"><label>노래 종류</label><div class="opt-row" id="lbMus"></div></div>'
+      : `<p class="note">🎵 노래 종류: <b>${MUS_LABEL[normMus(r.mus)]}</b></p>`}
     ${r.classMode ? '<p class="note">🏫 선생님이 칠판에서 시작하기를 기다리는 중…</p>'
      : isHost ? `<button class="btn big" id="lbStart" style="width:100%" ${ps.length<2?'disabled':''}>게임 시작</button>`
              : '<p class="note">방장이 시작하기를 기다리는 중…</p>'}`;
   $('#lbCopy').onclick = () => { navigator.clipboard ? navigator.clipboard.writeText(link).then(()=>toast('링크를 복사했어요'), ()=>toast(link)) : toast(link); };
+  const lm = $('#lbMus');
+  if(lm) csBtnRow(lm, MUS_OPTS, normMus(r.mus), v => { setMusPref(v); roomRef.child('mus').set(v).catch(()=>{}); });
   const st = $('#lbStart');
   if(st) st.onclick = () => {
     const list = ps.slice(0,10).map(([id,p]) => ({ id, name:p.name }));
     if(list.length < 2) return toast('2명 이상 있어야 해요');
     roomRef.transaction(r => {
       if(!r || r.status !== 'lobby') return;          // 이미 시작됐으면 그대로 둔다
-      r.status = 'playing'; r.state = newGame(list, { win:r.win, now:serverNow() });
+      r.status = 'playing'; r.state = newGame(list, { win:r.win, mus:r.mus, now:serverNow() });
       return r;
     }, null, false);
   };
@@ -2435,6 +2570,8 @@ function buildClassSetup(){
     pick.appendChild(b);
   });
   csBtnRow($('#csSize'), CS_SIZES, cs.size, v => { cs.size = v; buildClassSetup(); });
+  $('#csPopN').textContent = POP_SONGS.length;
+  csBtnRow($('#csMus'), MUS_OPTS, musPref, v => { csKeepNames(); setMusPref(v); buildClassSetup(); });
 
   const o = $('#csOpts');
   const winRow = `<div class="field"><label>목표 카드 수 (몇 장 모으면 이기나요)</label><div class="opt-row" id="csWin"></div>
@@ -2483,7 +2620,7 @@ $('#csStart').onclick = async () => {
     CLASS = { kind:'team', size:cs.size }; isBoard = true;
     MODE = 'local'; ME = -1; ROOM = null; RD = null;
     setBoardView(true, cs.size);
-    G = newGame(names.map((n,i) => ({ id:'T'+i, name:n })), { win:cs.win, now:Date.now() });
+    G = newGame(names.map((n,i) => ({ id:'T'+i, name:n })), { win:cs.win, mus:musPref, now:Date.now() });
     $('#chatBtn').classList.remove('on');
     closeOverlays(); show('game'); renderGame();
     return;
@@ -2492,7 +2629,7 @@ $('#csStart').onclick = async () => {
   try{
     let code = genCode();
     for(let k=0;k<6;k++){ const sn = await db.ref(P_ROOM+'/'+code).get(); if(!sn.exists()) break; code = genCode(); }
-    const base = { host:myId, board:myId, status:'lobby', created:TS(), players:{}, classMode:cs.kind, win:cs.win };
+    const base = { host:myId, board:myId, status:'lobby', created:TS(), players:{}, classMode:cs.kind, win:cs.win, mus:musPref };
     if(cs.kind === 'solo'){ base.cap = cs.cap; base.gmode = cs.gmode; base.rounds = cs.rounds; }
     await db.ref(P_ROOM+'/'+code).set(base);
     CLASS = { kind:cs.kind, size:cs.size }; isBoard = true;
